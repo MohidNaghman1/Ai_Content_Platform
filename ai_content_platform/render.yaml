@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ai-content-platform
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-content-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ai-content-redis
+          property: connectionString
+
+  - type: redis
+    name: ai-content-redis
+    plan: free
+
+databases:
+  - name: ai-content-db
+    plan: free
