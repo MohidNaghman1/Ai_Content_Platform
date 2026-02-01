@@ -1,22 +1,15 @@
-name: Deploy to Render
+name: CI - Test and Lint
 
 on:
   push:
     branches:
-      - main  # Deploy on push to main
+      - main
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Trigger Render deployment
-        uses: render-examples/render-deploy-action@v1
-        with:
-          api_key: ${{ secrets.RENDER_API_KEY }}
-          service_id: srv-d5vimckr85hc73e9vsl0
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
