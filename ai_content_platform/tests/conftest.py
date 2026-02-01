@@ -1,4 +1,3 @@
-import os
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
@@ -9,6 +8,9 @@ from ai_content_platform.app.main import app
 from ai_content_platform.app.database import Base
 from ai_content_platform.app.shared.dependencies import get_db
 from ai_content_platform.app.modules.users import models  # noqa
+import os
+
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 
 TEST_DB_PATH = "./test.db"
 TEST_DB_URL = f"sqlite+aiosqlite:///{TEST_DB_PATH}"
