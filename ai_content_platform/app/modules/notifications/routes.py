@@ -1,7 +1,5 @@
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from ai_content_platform.app.database import SesionLocal
 from ai_content_platform.app.modules.notifications.services import NotificationService
 from ai_content_platform.app.events.publishers import publish_event
 from ai_content_platform.app.shared.dependencies import get_db
@@ -9,10 +7,8 @@ from ai_content_platform.app.modules.notifications.schemas import NotificationCr
 from typing import List
 from datetime import datetime
 from ai_content_platform.app.shared.logging import get_logger
+
 logger = get_logger(__name__)
-
-
-
 
 router = APIRouter(
     prefix="/api/notifications",
