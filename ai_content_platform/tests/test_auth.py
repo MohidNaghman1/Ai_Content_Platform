@@ -4,9 +4,9 @@ import pytest
 @pytest.mark.usefixtures("client")
 def test_register_login_refresh_rbac(client):
     # Register admin user
-    client.post("/auth/register", json={"username": "alice_test", "password": "string", "role": "admin"})
+    client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
     # Register normal user
-    client.post("/auth/register", json={"username": "bob_test", "password": "string", "role": "viewer"})
+    client.post("/auth/register", json={"username": "bob_test", "email": "bob@example.com", "password": "string", "role": "viewer"})
 
     # Test login with valid credentials (admin)
     response = client.post("/auth/login", data={"username": "alice_test", "password": "string"})
