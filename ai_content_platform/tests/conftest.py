@@ -9,7 +9,7 @@ from sqlalchemy.pool import StaticPool
 from ai_content_platform.app.main import app
 from ai_content_platform.app.database import Base
 from ai_content_platform.app.shared.dependencies import get_db
-from ai_content_platform.app.modules.users import models  # noqa
+from ai_content_platform.app.modules.auth.models import Role
 
 TEST_DB_PATH = "./test.db"
 TEST_DB_URL = f"sqlite+aiosqlite:///{TEST_DB_PATH}"
@@ -36,6 +36,15 @@ async def setup_db():
     async with engine.begin() as conn:
         print("CREATING TABLES:", Base.metadata.tables.keys())
         await conn.run_sync(Base.metadata.create_all)
+        # Insert required roles for tests
+        await conn.execute(
+            Role.__table__.insert(),
+            [
+                {"name": "admin"},
+                {"name": "viewer"}
+            ]
+        )
+        print("Inserted roles: admin, viewer")
     yield
     # Drop tables after tests
     async with engine.begin() as conn:
