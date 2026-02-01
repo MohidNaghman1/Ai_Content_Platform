@@ -50,4 +50,5 @@ async def setup_db():
 
 @pytest.fixture(scope="function")
 def client():
+    print("TEST ROUTES:", [route.path for route in app.routes])
     return TestClient(app)
