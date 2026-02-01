@@ -9,19 +9,15 @@ from ai_content_platform.app.modules.admin.routes import admin_router
 from ai_content_platform.app.modules.notifications.routes import router as notifications_router
 from ai_content_platform.app.shared.middleware import LoggingMiddleware
 
-
 app = FastAPI()
 app.add_middleware(LoggingMiddleware)
 
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(user_router, prefix="/users", tags=["users"])
-app.include_router(content_router, prefix="/content", tags=["content"])
-app.include_router(chat_router, prefix="/chat", tags=["chat"])
-app.include_router(notifications_router, prefix="/api/notifications", tags=["notifications"])
-app.include_router(admin_router, prefix="/admin", tags=["admin"])
-
-# Debug: print all registered routes
-print("ROUTES:", [route.path for route in app.routes])
+app.include_router(auth_router)
+app.include_router(user_router)
+app.include_router(content_router)
+app.include_router(chat_router)
+app.include_router(notifications_router)
+app.include_router(admin_router)
 
 # Example admin-only route
 @app.get("/admin")
