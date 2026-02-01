@@ -10,15 +10,18 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
-# ENCODED_PASSWORD = urllib.parse.quote_plus(settings.DB_PASSWORD)
-
-# ASYNC_DATABASE_URL = (
-#     f"postgresql+asyncpg://{settings.DB_USER}:{ENCODED_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-# )
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable not set.")
 
-ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+# Render may provide 'postgres://' or 'postgresql://' so handle both
+if DATABASE_URL.startswith("postgres://"):
+    ASYNC_DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+else:
+    ASYNC_DATABASE_URL = DATABASE_URL
 
 
 engine = create_async_engine(ASYNC_DATABASE_URL, echo=True, future=True)
@@ -26,6 +29,4 @@ AsyncSessionLocal = sessionmaker(
     bind=engine, class_=AsyncSession, expire_on_commit=False, autoflush=False, autocommit=False
 )
 
-SYNC_DATABASE_URL = (
-    f"postgresql://{settings.DB_USER}:{ENCODED_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-)
+SYNC_DATABASE_URL = DATABASE_URL
