@@ -133,7 +133,8 @@ async def test_create_article_with_new_and_existing_tags():
             print("Create article failed:", response.status_code, response.text)
         assert response.status_code == 200
         data = await get_json_or_debug(response)
-        assert data and data["title"] == "AI Content Test"
+        assert data is not None, f"Create article response is None! Status: {response.status_code}, Text: {response.text}"
+        assert data["title"] == "AI Content Test"
         assert set([t["name"] for t in data["tags"]]) == {"ai", "fastapi", "python"}
 
         # Create another article with some existing and some new tags
@@ -151,7 +152,8 @@ async def test_create_article_with_new_and_existing_tags():
             print("Create 2nd article failed:", response2.status_code, response2.text)
         assert response2.status_code == 200
         data2 = await get_json_or_debug(response2)
-        assert data2 and data2["title"] == "Second Article"
+        assert data2 is not None, f"Create 2nd article response is None! Status: {response2.status_code}, Text: {response2.text}"
+        assert data2["title"] == "Second Article"
         assert set([t["name"] for t in data2["tags"]]) == {"ai", "newtag"}
 
         # List all tags
@@ -160,6 +162,7 @@ async def test_create_article_with_new_and_existing_tags():
             print("List tags failed:", tags_response.status_code, tags_response.text)
         assert tags_response.status_code == 200
         tags = await get_json_or_debug(tags_response)
+        assert tags is not None, f"List tags response is None! Status: {tags_response.status_code}, Text: {tags_response.text}"
         tag_names = [t["name"] for t in tags]
         for name in ["ai", "fastapi", "python", "newtag"]:
             assert name in tag_names
@@ -170,7 +173,8 @@ async def test_create_article_with_new_and_existing_tags():
             print("List articles failed:", articles_response.status_code, articles_response.text)
         assert articles_response.status_code == 200
         articles = await get_json_or_debug(articles_response)
-        assert articles and len(articles) >= 2
+        assert articles is not None, f"List articles response is None! Status: {articles_response.status_code}, Text: {articles_response.text}"
+        assert len(articles) >= 2
         titles = [a["title"] for a in articles]
         assert "AI Content Test" in titles
         assert "Second Article" in titles
@@ -188,6 +192,7 @@ async def test_create_article_with_new_and_existing_tags():
             print("Update article failed:", update_response.status_code, update_response.text)
         assert update_response.status_code == 200
         updated = await get_json_or_debug(update_response)
+        assert updated is not None, f"Update article response is None! Status: {update_response.status_code}, Text: {update_response.text}"
         updated_tag_names = [t["name"] for t in updated["tags"]]
         for name in ["ai", "fastapi", "extratag"]:
             assert name in updated_tag_names
@@ -207,7 +212,8 @@ async def test_create_article_with_new_and_existing_tags():
             print("AI generate failed:", ai_gen_response.status_code, ai_gen_response.text)
         assert ai_gen_response.status_code == 200
         ai_data = await get_json_or_debug(ai_gen_response)
-        assert ai_data and ai_data["title"] == "AI Generated Article"
+        assert ai_data is not None, f"AI generate response is None! Status: {ai_gen_response.status_code}, Text: {ai_gen_response.text}"
+        assert ai_data["title"] == "AI Generated Article"
         assert "ai" in [t["name"] for t in ai_data["tags"]]
         assert "society" in [t["name"] for t in ai_data["tags"]]
         assert ai_data["content"] and "AI" in ai_data["content"]
@@ -220,7 +226,8 @@ async def test_create_article_with_new_and_existing_tags():
             print("AI summarize failed:", ai_sum_response.status_code, ai_sum_response.text)
         assert ai_sum_response.status_code == 200
         ai_sum_data = await get_json_or_debug(ai_sum_response)
-        assert ai_sum_data and ai_sum_data["summary"]
+        assert ai_sum_data is not None, f"AI summarize response is None! Status: {ai_sum_response.status_code}, Text: {ai_sum_response.text}"
+        assert ai_sum_data["summary"]
         assert len(ai_sum_data["summary"]) > 0
 
         # Delete article
@@ -229,7 +236,8 @@ async def test_create_article_with_new_and_existing_tags():
             print("Delete article failed:", del_response.status_code, del_response.text)
         assert del_response.status_code == 200
         del_data = await get_json_or_debug(del_response)
-        assert del_data and del_data["detail"] == "Deleted"
+        assert del_data is not None, f"Delete article response is None! Status: {del_response.status_code}, Text: {del_response.text}"
+        assert del_data["detail"] == "Deleted"
 
         # Try to get deleted article
         get_deleted = await client.get(f"/content/articles/{article_id}", headers=headers)
