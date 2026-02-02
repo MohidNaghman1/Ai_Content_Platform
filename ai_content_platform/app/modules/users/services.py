@@ -87,7 +87,6 @@ async def create_user(db: AsyncSession, user_data):
         result = await db.execute(select(Role).where(Role.name == role_name))
         role_obj = result.scalar_one()
 
-
         # Assign role via association table (user_roles)
         await db.execute(
             user_roles.insert().values(
