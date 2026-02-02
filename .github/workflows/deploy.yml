@@ -57,8 +57,8 @@ jobs:
       - name: Push formatting changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          github_token: ${{ secrets.GH_PAT }}
+          branch: main
 
       - name: Run tests and lint
         run: |
