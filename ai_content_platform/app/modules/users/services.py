@@ -50,28 +50,35 @@ async def get_user_by_username(db: AsyncSession, username: str):
         return None
 
 
-async def create_user(
-    db: AsyncSession, username: str, email: str, password: str, role: str
-):
-    logger.info(f"Creating user: {username}")
+async def create_user(db: AsyncSession, user_data):
+    """
+    Create a user using user_data dict/object with keys: username, email, password, role.
+    Inserts user, flushes for constraints, fetches role, assigns, commits, and rolls back on error.
+    """
+    logger.info(f"Creating user: {getattr(user_data, 'username', None) or user_data.get('username')}")
     try:
+        # Hash password
+        password = user_data["password"] if isinstance(user_data, dict) else user_data.password
         hashed_password = get_password_hash(password)
-        # Fetch the Role object from the DB
-        result = await db.execute(select(Role).where(Role.name == role))
-        role_obj = result.scalars().first()
-        if not role_obj:
-            logger.warning(f"Role '{role}' does not exist.")
-            raise ValueError(f"Role '{role}' does not exist.")
+        # Create user instance (without roles yet)
         user = User(
-            username=username,
-            email=email,
+            username=user_data["username"] if isinstance(user_data, dict) else user_data.username,
+            email=user_data["email"] if isinstance(user_data, dict) else user_data.email,
             hashed_password=hashed_password,
-            role=role,
-            roles=[role_obj],  # assign the many-to-many relationship
+            role=user_data["role"] if isinstance(user_data, dict) else user_data.role,
         )
         db.add(user)
+        await db.flush()  # force DB constraints NOW
+
+        # Fetch the Role object from the DB
+        role_name = user_data["role"] if isinstance(user_data, dict) else user_data.role
+        result = await db.execute(select(Role).where(Role.name == role_name))
+        role_obj = result.scalar_one()
+        user.roles = [role_obj]
+
         await db.commit()
         await db.refresh(user)
+
         # Trigger notification event (example: welcome message)
         try:
             publish_event(
@@ -87,5 +94,6 @@ async def create_user(
             )
         return user
     except Exception as e:
-        logger.error(f"Error creating user {username}: {e}", exc_info=True)
+        await db.rollback()
+        logger.error(f"Error creating user: {e}", exc_info=True)
         raise

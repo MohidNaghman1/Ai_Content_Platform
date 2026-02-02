@@ -38,9 +38,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
             logger.error(f"Username already registered: {user_in.username}")
             raise HTTPException(status_code=400, detail="Username already registered")
         # Optionally, check for existing email here as well
-        user = await create_user(
-            db, user_in.username, user_in.email, user_in.password, user_in.role
-        )
+        user = await create_user(db, user_in)
         logger.info(f"User registered: {user_in.username}")
         return user
     except Exception as e:

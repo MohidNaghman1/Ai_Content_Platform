@@ -61,7 +61,7 @@ async def create_user_service(user: UserCreate):
             if existing:
                 logger.error(f"Username already exists: {user.username}")
                 raise HTTPException(status_code=400, detail="Username already exists")
-            new_user = await create_user(db, user.username, user.password, user.role)
+            new_user = await create_user(db, user)
             logger.info(f"User created: {user.username}")
             return UserOut.model_validate(new_user)
     except Exception as e:

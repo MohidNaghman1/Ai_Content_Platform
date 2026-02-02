@@ -116,9 +116,7 @@ async def create_user_endpoint(user_in: UserCreate, db: AsyncSession = Depends(g
     """Create a new user."""
     logger.info(f"API: Creating user {user_in.username}")
     try:
-        user = await create_user(
-            db, user_in.username, user_in.email, user_in.password, user_in.role
-        )
+        user = await create_user(db, user_in)
         return user
     except Exception as e:
         logger.error(f"API: Error creating user {user_in.username}: {e}", exc_info=True)
