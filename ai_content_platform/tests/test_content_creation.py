@@ -2,11 +2,14 @@
 from ai_content_platform.app.modules.auth.models import Role, user_roles
 from ai_content_platform.app.database import Base
 from sqlalchemy import select
-# Use async session to ensure user is assigned admin role
+from ai_content_platform.app.modules.users.services import get_user_by_username
 import asyncio
 from ai_content_platform.tests.conftest import AsyncTestingSessionLocal
 from ai_content_platform.app.shared.dependencies import get_db
 import pytest
+import pytest_asyncio
+import httpx
+from fastapi import FastAPI
 from ai_content_platform.app.modules.content import gemini_service
 
 @pytest.fixture(autouse=True)
@@ -24,166 +27,164 @@ def mock_gemini(monkeypatch):
         return "This is AI generated content."
     monkeypatch.setattr(gemini_service.GeminiService, "generate_text", mock_generate_text)
 
-@pytest.mark.usefixtures("client")
-def test_create_article_with_new_and_existing_tags(client):
-        # Debug: Print user roles and permissions after login
-    from ai_content_platform.app.modules.users.services import get_user_by_username
-    async def debug_user_permissions():
-           async with AsyncTestingSessionLocal() as session:
-                user = await get_user_by_username(session, "alice_test")
-                print("User roles:", [r.name for r in user.roles])
-                print("User permissions:", [p.name for r in user.roles for p in r.permissions])
+@pytest.mark.asyncio
+async def test_create_article_with_new_and_existing_tags():
+    async with httpx.AsyncClient(app=fastapi_app, base_url="http://testserver") as client:
+        # Register user
+        await client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
 
-    asyncio.run(debug_user_permissions())
-    # Register user
-    client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
-
-    from ai_content_platform.app.modules.auth.models import Permission, role_permissions
-    async def ensure_admin_and_permission():
-        async with AsyncTestingSessionLocal() as session:
-            users_table = Base.metadata.tables['users']
-            # Get user
-            user = (await session.execute(select(users_table).where(users_table.c.username == 'alice_test'))).first()
-            # Get or create admin role
-            admin_role = (await session.execute(select(Role).where(Role.name == 'admin'))).scalar_one_or_none()
-            if not admin_role:
-                admin_role = Role(name='admin')
-                session.add(admin_role)
-                await session.commit()
-                await session.refresh(admin_role)
-            # Get or create generate_content permission
-            perm = (await session.execute(select(Permission).where(Permission.name == 'generate_content'))).scalar_one_or_none()
-            if not perm:
-                perm = Permission(name='generate_content', description='Can generate AI content')
-                session.add(perm)
-                await session.commit()
-                await session.refresh(perm)
-            # Link permission to admin role if not already
-            rp_exists = (await session.execute(role_permissions.select().where((role_permissions.c.role_id == admin_role.id) & (role_permissions.c.permission_id == perm.id)))).first()
-            if not rp_exists:
-                await session.execute(role_permissions.insert().values(role_id=admin_role.id, permission_id=perm.id))
-                await session.commit()
-            # Assign admin role to user if not already
-            if user:
-                user_row = user[0]
-                if hasattr(user_row, 'id'):
-                    user_id = user_row.id
-                elif isinstance(user_row, int):
-                    user_id = user_row
-                elif isinstance(user_row, (tuple, list)):
-                    user_id = user_row[0]
-                else:
-                    raise Exception(f"Unexpected user row type: {type(user_row)}")
-                ur_exists = (await session.execute(user_roles.select().where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id)))).first()
-                if not ur_exists:
-                    await session.execute(user_roles.insert().values(user_id=user_id, role_id=admin_role.id))
+        from ai_content_platform.app.modules.auth.models import Permission, role_permissions
+        async def ensure_admin_and_permission():
+            async with AsyncTestingSessionLocal() as session:
+                users_table = Base.metadata.tables['users']
+                # Get user
+                user = (await session.execute(select(users_table).where(users_table.c.username == 'alice_test'))).first()
+                # Get or create admin role
+                admin_role = (await session.execute(select(Role).where(Role.name == 'admin'))).scalar_one_or_none()
+                if not admin_role:
+                    admin_role = Role(name='admin')
+                    session.add(admin_role)
                     await session.commit()
+                    await session.refresh(admin_role)
+                # Get or create generate_content permission
+                perm = (await session.execute(select(Permission).where(Permission.name == 'generate_content'))).scalar_one_or_none()
+                if not perm:
+                    perm = Permission(name='generate_content', description='Can generate AI content')
+                    session.add(perm)
+                    await session.commit()
+                    await session.refresh(perm)
+                # Link permission to admin role if not already
+                rp_exists = (await session.execute(role_permissions.select().where((role_permissions.c.role_id == admin_role.id) & (role_permissions.c.permission_id == perm.id)))).first()
+                if not rp_exists:
+                    await session.execute(role_permissions.insert().values(role_id=admin_role.id, permission_id=perm.id))
+                    await session.commit()
+                # Assign admin role to user if not already
+                if user:
+                    user_row = user[0]
+                    if hasattr(user_row, 'id'):
+                        user_id = user_row.id
+                    elif isinstance(user_row, int):
+                        user_id = user_row
+                    elif isinstance(user_row, (tuple, list)):
+                        user_id = user_row[0]
+                    else:
+                        raise Exception(f"Unexpected user row type: {type(user_row)}")
+                    ur_exists = (await session.execute(user_roles.select().where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id)))).first()
+                    if not ur_exists:
+                        await session.execute(user_roles.insert().values(user_id=user_id, role_id=admin_role.id))
+                        await session.commit()
 
-    asyncio.run(ensure_admin_and_permission())
+        await ensure_admin_and_permission()
 
-    # Now login
-    login_response = client.post("/auth/login", data={"username": "alice_test", "password": "string"})
-    assert login_response.status_code == 200
-    tokens = login_response.json()
-    access_token = tokens["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+        # Now login
+        login_response = await client.post("/auth/login", data={"username": "alice_test", "password": "string"})
+        assert login_response.status_code == 200
+        tokens = login_response.json()
+        access_token = tokens["access_token"]
+        headers = {"Authorization": f"Bearer {access_token}"}
 
-    # Create an article with new tags
-    response = client.post(
-        "/content/articles/",
-        json={
-            "title": "AI Content Test",
-            "content": "This is a test article about AI.",
-            "summary": "Test summary.",
-            "tag_names": ["AI", "FastAPI", "Python"]
-        },
-        headers=headers
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["title"] == "AI Content Test"
-    assert set([t["name"] for t in data["tags"]]) == {"ai", "fastapi", "python"}
+        # Debug: Print user roles and permissions after login
+        async with AsyncTestingSessionLocal() as session:
+            user = await get_user_by_username(session, "alice_test")
+            print("User roles:", [r.name for r in user.roles])
+            print("User permissions:", [p.name for r in user.roles for p in r.permissions])
 
-    # Create another article with some existing and some new tags
-    response2 = client.post(
-        "/content/articles/",
-        json={
-            "title": "Second Article",
-            "content": "Another article.",
-            "summary": "Second summary.",
-            "tag_names": ["AI", "NewTag"]
-        },
-        headers=headers
-    )
-    assert response2.status_code == 200
-    data2 = response2.json()
-    assert data2["title"] == "Second Article"
-    assert set([t["name"] for t in data2["tags"]]) == {"ai", "newtag"}
+        # Create an article with new tags
+        response = await client.post(
+            "/content/articles/",
+            json={
+                "title": "AI Content Test",
+                "content": "This is a test article about AI.",
+                "summary": "Test summary.",
+                "tag_names": ["AI", "FastAPI", "Python"]
+            },
+            headers=headers
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["title"] == "AI Content Test"
+        assert set([t["name"] for t in data["tags"]]) == {"ai", "fastapi", "python"}
 
-    # List all tags
-    tags_response = client.get("/content/tags/", headers=headers)
-    assert tags_response.status_code == 200
-    tags = tags_response.json()
-    tag_names = [t["name"] for t in tags]
-    for name in ["ai", "fastapi", "python", "newtag"]:
-        assert name in tag_names
+        # Create another article with some existing and some new tags
+        response2 = await client.post(
+            "/content/articles/",
+            json={
+                "title": "Second Article",
+                "content": "Another article.",
+                "summary": "Second summary.",
+                "tag_names": ["AI", "NewTag"]
+            },
+            headers=headers
+        )
+        assert response2.status_code == 200
+        data2 = response2.json()
+        assert data2["title"] == "Second Article"
+        assert set([t["name"] for t in data2["tags"]]) == {"ai", "newtag"}
 
-    # List all articles
-    articles_response = client.get("/content/articles/", headers=headers)
-    assert articles_response.status_code == 200
-    articles = articles_response.json()
-    assert len(articles) >= 2
-    titles = [a["title"] for a in articles]
-    assert "AI Content Test" in titles
-    assert "Second Article" in titles
+        # List all tags
+        tags_response = await client.get("/content/tags/", headers=headers)
+        assert tags_response.status_code == 200
+        tags = tags_response.json()
+        tag_names = [t["name"] for t in tags]
+        for name in ["ai", "fastapi", "python", "newtag"]:
+            assert name in tag_names
 
-    # Update article to add more tags
-    article_id = data["id"]
-    update_response = client.put(
-        f"/content/articles/{article_id}",
-        json={
-            "tag_names": ["AI", "FastAPI", "ExtraTag"]
-        },
-        headers=headers
-    )
-    assert update_response.status_code == 200
-    updated = update_response.json()
-    updated_tag_names = [t["name"] for t in updated["tags"]]
-    for name in ["ai", "fastapi", "extratag"]:
-        assert name in updated_tag_names
+        # List all articles
+        articles_response = await client.get("/content/articles/", headers=headers)
+        assert articles_response.status_code == 200
+        articles = articles_response.json()
+        assert len(articles) >= 2
+        titles = [a["title"] for a in articles]
+        assert "AI Content Test" in titles
+        assert "Second Article" in titles
 
-    # Test AI-powered article generation (protected endpoint)
-    ai_gen_response = client.post(
-        "/content/articles/generate/",
-        json={
-            "title": "AI Generated Article",
-            "content": "Write about the impact of AI on society.",
-            "summary": None,
-            "tag_names": ["AI", "Society"]
-        },
-        headers=headers
-    )
-    assert ai_gen_response.status_code == 200
-    ai_data = ai_gen_response.json()
-    assert ai_data["title"] == "AI Generated Article"
-    assert "ai" in [t["name"] for t in ai_data["tags"]]
-    assert "society" in [t["name"] for t in ai_data["tags"]]
-    assert ai_data["content"] and "AI" in ai_data["content"]
-    assert ai_data["summary"]
+        # Update article to add more tags
+        article_id = data["id"]
+        update_response = await client.put(
+            f"/content/articles/{article_id}",
+            json={
+                "tag_names": ["AI", "FastAPI", "ExtraTag"]
+            },
+            headers=headers
+        )
+        assert update_response.status_code == 200
+        updated = update_response.json()
+        updated_tag_names = [t["name"] for t in updated["tags"]]
+        for name in ["ai", "fastapi", "extratag"]:
+            assert name in updated_tag_names
 
-    # Test AI-powered summarization (protected endpoint)
-    article_id = ai_data["id"]
-    ai_sum_response = client.post(f"/content/articles/{article_id}/summarize/", headers=headers)
-    assert ai_sum_response.status_code == 200
-    ai_sum_data = ai_sum_response.json()
-    assert ai_sum_data["summary"]
-    assert len(ai_sum_data["summary"]) > 0
+        # Test AI-powered article generation (protected endpoint)
+        ai_gen_response = await client.post(
+            "/content/articles/generate/",
+            json={
+                "title": "AI Generated Article",
+                "content": "Write about the impact of AI on society.",
+                "summary": None,
+                "tag_names": ["AI", "Society"]
+            },
+            headers=headers
+        )
+        assert ai_gen_response.status_code == 200
+        ai_data = ai_gen_response.json()
+        assert ai_data["title"] == "AI Generated Article"
+        assert "ai" in [t["name"] for t in ai_data["tags"]]
+        assert "society" in [t["name"] for t in ai_data["tags"]]
+        assert ai_data["content"] and "AI" in ai_data["content"]
+        assert ai_data["summary"]
 
-    # Delete article
-    del_response = client.delete(f"/content/articles/{article_id}", headers=headers)
-    assert del_response.status_code == 200
-    assert del_response.json()["detail"] == "Deleted"
+        # Test AI-powered summarization (protected endpoint)
+        article_id = ai_data["id"]
+        ai_sum_response = await client.post(f"/content/articles/{article_id}/summarize/", headers=headers)
+        assert ai_sum_response.status_code == 200
+        ai_sum_data = ai_sum_response.json()
+        assert ai_sum_data["summary"]
+        assert len(ai_sum_data["summary"]) > 0
 
-    # Try to get deleted article
-    get_deleted = client.get(f"/content/articles/{article_id}", headers=headers)
-    assert get_deleted.status_code == 404
+        # Delete article
+        del_response = await client.delete(f"/content/articles/{article_id}", headers=headers)
+        assert del_response.status_code == 200
+        assert del_response.json()["detail"] == "Deleted"
+
+        # Try to get deleted article
+        get_deleted = await client.get(f"/content/articles/{article_id}", headers=headers)
+        assert get_deleted.status_code == 404
