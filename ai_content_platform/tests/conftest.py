@@ -45,6 +45,31 @@ async def setup_db():
             ]
         )
         print("Inserted roles: admin, viewer")
+
+        # Insert 'generate_content' permission and assign to admin role
+        from ai_content_platform.app.modules.auth.models import Permission, RolePermission
+        # Insert permission if not exists
+        result = await conn.execute(Permission.__table__.select().where(Permission.name == "generate_content"))
+        perm = result.first()
+        if not perm:
+            perm_result = await conn.execute(
+                Permission.__table__.insert().values(name="generate_content", description="Can generate AI content").returning(Permission.id)
+            )
+            perm_id = perm_result.scalar()
+        else:
+            perm_id = perm.id
+        # Get admin role id
+        result = await conn.execute(Role.__table__.select().where(Role.name == "admin"))
+        admin_role = result.first()
+        if admin_role:
+            admin_role_id = admin_role.id
+            # Assign permission to admin role if not already assigned
+            rp_result = await conn.execute(RolePermission.__table__.select().where(
+                (RolePermission.role_id == admin_role_id) & (RolePermission.permission_id == perm_id)
+            ))
+            if not rp_result.first():
+                await conn.execute(RolePermission.__table__.insert().values(role_id=admin_role_id, permission_id=perm_id))
+        print("Assigned 'generate_content' permission to admin role.")
     yield
     # Drop tables after tests
     async with engine.begin() as conn:
