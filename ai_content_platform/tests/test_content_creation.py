@@ -109,12 +109,15 @@ async def test_create_article_with_new_and_existing_tags():
         # Helper to robustly get JSON or print error
         async def get_json_or_debug(response):
             try:
-                print(f"Response content-type: {response.headers.get('content-type')}")
-                # Always try to parse JSON, regardless of content-type
-                return await response.json()
+                if response.headers.get("content-type", "").startswith("application/json"):
+                    return response.json()   #  NO await
+                else:
+                    print("Non-JSON response:", response.text)
+                    return None
             except Exception as e:
                 print(f"Failed to parse JSON: {e}\nResponse text: {response.text}")
                 return None
+
 
         # Create an article with new tags
         response = await client.post(
