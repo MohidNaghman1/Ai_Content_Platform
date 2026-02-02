@@ -2,7 +2,9 @@
 from ai_content_platform.app.modules.auth.models import Role, user_roles
 from ai_content_platform.app.database import Base
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+# Use async session to ensure user is assigned admin role
+import asyncio
+from ai_content_platform.tests.conftest import AsyncTestingSessionLocal
 from ai_content_platform.app.shared.dependencies import get_db
 import pytest
 from ai_content_platform.app.modules.content import gemini_service
@@ -27,18 +29,19 @@ def test_create_article_with_new_and_existing_tags(client):
     # Register user
     client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
 
-        # Use the test DB session
-    with next(get_db()) as db:
-        # Get user id
-        user = db.execute(select(Base.metadata.tables['users']).where(Base.metadata.tables['users'].c.username == 'alice_test')).first()
-        admin_role = db.execute(select(Role).where(Role.name == 'admin')).scalar_one_or_none()
-        if user and admin_role:
-            user_id = user[0]
-            # Check if already assigned
-            exists = db.execute(select(user_roles).where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id))).first()
-            if not exists:
-                db.execute(user_roles.insert().values(user_id=user_id, role_id=admin_role.id))
-                db.commit()
+    async def assign_admin_role():
+        async with AsyncTestingSessionLocal() as session:
+            users_table = Base.metadata.tables['users']
+            user = (await session.execute(select(users_table).where(users_table.c.username == 'alice_test'))).first()
+            admin_role = (await session.execute(select(Role).where(Role.name == 'admin'))).scalar_one_or_none()
+            if user and admin_role:
+                user_id = user[0].id if hasattr(user[0], 'id') else user[0][0]
+                exists = (await session.execute(select(user_roles).where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id)))).first()
+                if not exists:
+                    await session.execute(user_roles.insert().values(user_id=user_id, role_id=admin_role.id))
+                    await session.commit()
+
+    asyncio.run(assign_admin_role())
 
     # Now login
     login_response = client.post("/auth/login", data={"username": "alice_test", "password": "string"})
