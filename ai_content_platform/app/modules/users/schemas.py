@@ -31,7 +31,6 @@ class UserCreate(UserBase):
     email: str
 
 
-
 class UserOut(BaseModel):
     id: int
     username: str
@@ -44,8 +43,8 @@ class UserOut(BaseModel):
         return cls(
             id=user.id,
             username=user.username,
-            roles=[r.name for r in getattr(user, 'roles', [])],
-            avatar=getattr(user, 'avatar', None),
+            roles=[r.name for r in getattr(user, "roles", [])],
+            avatar=getattr(user, "avatar", None),
         )
 
     model_config = ConfigDict(from_attributes=True)
