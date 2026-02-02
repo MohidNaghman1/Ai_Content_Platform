@@ -2,6 +2,7 @@
 User service functions: hashing, DB queries, creation.
 All business logic for user management.
 """
+
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from ai_content_platform.app.events.publishers import publish_event
@@ -43,9 +44,11 @@ async def get_user_by_username(db: AsyncSession, username: str):
     """Fetch a user by username from the DB."""
     logger.info(f"Fetching user by username: {username}")
     try:
-        
+
         result = await db.execute(
-            select(User).options(selectinload(User.roles)).where(User.username == username)
+            select(User)
+            .options(selectinload(User.roles))
+            .where(User.username == username)
         )
         user = result.scalars().first()
         return user
