@@ -1,12 +1,4 @@
 import pytest
-import httpx
-from ai_content_platform.app.main import app as fastapi_app
-
-# Use pytest-asyncio fixture for async tests
-@pytest.fixture
-async def client():
-    async with httpx.AsyncClient(app=fastapi_app, base_url="http://testserver") as c:
-        yield c
 
 @pytest.mark.asyncio
 async def test_register_login_refresh_rbac(client):
