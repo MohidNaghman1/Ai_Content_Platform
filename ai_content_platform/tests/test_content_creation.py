@@ -2,7 +2,8 @@
 from ai_content_platform.app.modules.auth.models import Role, user_roles
 from ai_content_platform.app.database import Base
 from sqlalchemy import select
-from ai_content_platform.app.modules.users.services import get_user_by_username
+from sqlalchemy.orm import selectinload
+from ai_content_platform.app.modules.users.models import User
 from ai_content_platform.app.main import app as fastapi_app
 from ai_content_platform.tests.conftest import AsyncTestingSessionLocal
 import pytest
@@ -82,7 +83,12 @@ async def test_create_article_with_new_and_existing_tags():
 
         # Debug: Print user roles and permissions after login
         async with AsyncTestingSessionLocal() as session:
-            user = await get_user_by_username(session, "alice_test")
+            result = await session.execute(
+                select(User).where(User.username == "alice_test").options(
+                    selectinload(User.roles).selectinload(Role.permissions)
+                )
+            )
+            user = result.scalars().first()
             print("User roles:", [r.name for r in user.roles])
             print("User permissions:", [p.name for r in user.roles for p in r.permissions])
 
