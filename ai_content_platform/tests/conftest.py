@@ -14,8 +14,9 @@ TEST_DB_PATH = "./test.db"
 TEST_DB_URL = f"sqlite+aiosqlite:///{TEST_DB_PATH}"
 import httpx
 from ai_content_platform.app.main import app as fastapi_app
+import pytest_asyncio
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client():
     async with httpx.AsyncClient(app=fastapi_app, base_url="http://testserver") as c:
         yield c
