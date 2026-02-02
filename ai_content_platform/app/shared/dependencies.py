@@ -123,18 +123,9 @@ def require_role(required_role: str):
 	return role_dependency
 
 # Database session dependency
-def get_db():
-	"""
-	Yields an async DB session for FastAPI dependencies.
-	Closes the session after use.
-	"""
-	logger.info("Creating new async DB session.")
-	db = AsyncSessionLocal()
-	try:
-		yield db
-	except Exception as e:
-		logger.error(f"Error in DB session: {e}", exc_info=True)
-		raise
-	finally:
-		db.close()
-		logger.info("DB session closed.")
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
