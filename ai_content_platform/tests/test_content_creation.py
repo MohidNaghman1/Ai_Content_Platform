@@ -1,6 +1,10 @@
-
+# Ensure user is assigned admin role in DB (in case registration does not do it)
+from ai_content_platform.app.modules.auth.models import Role, user_roles
+from ai_content_platform.app.database import Base
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from ai_content_platform.app.shared.dependencies import get_db
 import pytest
-import os
 from ai_content_platform.app.modules.content import gemini_service
 
 @pytest.fixture(autouse=True)
@@ -20,8 +24,23 @@ def mock_gemini(monkeypatch):
 
 @pytest.mark.usefixtures("client")
 def test_create_article_with_new_and_existing_tags(client):
-    # Register and login a user to get JWT access token
+    # Register user
     client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
+
+        # Use the test DB session
+    with next(get_db()) as db:
+        # Get user id
+        user = db.execute(select(Base.metadata.tables['users']).where(Base.metadata.tables['users'].c.username == 'alice_test')).first()
+        admin_role = db.execute(select(Role).where(Role.name == 'admin')).scalar_one_or_none()
+        if user and admin_role:
+            user_id = user[0]
+            # Check if already assigned
+            exists = db.execute(select(user_roles).where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id))).first()
+            if not exists:
+                db.execute(user_roles.insert().values(user_id=user_id, role_id=admin_role.id))
+                db.commit()
+
+    # Now login
     login_response = client.post("/auth/login", data={"username": "alice_test", "password": "string"})
     assert login_response.status_code == 200
     tokens = login_response.json()
