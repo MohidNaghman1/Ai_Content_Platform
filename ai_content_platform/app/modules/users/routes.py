@@ -4,6 +4,7 @@ All endpoints use async SQLAlchemy and Pydantic schemas.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import selectinload
 from ai_content_platform.app.shared.dependencies import (
     get_current_user,
     get_db,
@@ -40,7 +41,7 @@ user_router = APIRouter(prefix="/users", tags=["users"])
 async def list_users_endpoint(db: AsyncSession = Depends(get_db)):
     logger.info("API: Listing all users")
     try:
-        result = await db.execute(select(User))
+        result = await db.execute(select(User).options(selectinload(User.roles)))
         users = result.scalars().all()
         return [UserOut.model_validate(u) for u in users]
     except Exception as e:
