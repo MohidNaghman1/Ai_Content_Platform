@@ -110,7 +110,7 @@ async def test_create_article_with_new_and_existing_tags():
         async def get_json_or_debug(response):
             try:
                 if response.headers.get("content-type", "").startswith("application/json"):
-                    return response.json()   #  NO await
+                    return await response.json()
                 else:
                     print("Non-JSON response:", response.text)
                     return None

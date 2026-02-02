@@ -2,7 +2,6 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 import pytest
 import pytest_asyncio
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -82,7 +81,3 @@ async def setup_db():
     except PermissionError:
         print("Could not delete test.db, file still in use.")
 
-@pytest.fixture(scope="function")
-def client():
-    print("TEST ROUTES:", [route.path for route in app.routes])
-    return TestClient(app)

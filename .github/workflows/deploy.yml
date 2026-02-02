@@ -37,8 +37,13 @@ jobs:
 
       - name: Run tests and lint
         run: |
-          pytest ai_content_platform/tests
+          pytest ai_content_platform/tests --maxfail=1 --disable-warnings --exitfirst
           flake8 ai_content_platform/app
+
+      - name: Ensure clean exit
+        run: |
+          echo "Forcing cleanup"
+          pkill -f python || true
 
       - name: Trigger Render deployment
         if: success()  # Only deploy if tests/lint pass
