@@ -62,7 +62,7 @@ async def get_profile(
         if not user:
             logger.warning(f"API: User not found: {current_user.username}")
             raise HTTPException(status_code=404, detail="User not found")
-        return user
+        return UserOut.model_validate(user)
     except HTTPException:
         raise
     except Exception as e:
@@ -100,7 +100,7 @@ async def update_profile(
             user.email = update.email
         await db.commit()
         await db.refresh(user)
-        return user
+        return UserOut.model_validate(user)
     except HTTPException:
         raise
     except Exception as e:
@@ -118,7 +118,7 @@ async def create_user_endpoint(user_in: UserCreate, db: AsyncSession = Depends(g
     logger.info(f"API: Creating user {user_in.username}")
     try:
         user = await create_user(db, user_in)
-        return user
+        return UserOut.model_validate(user)
     except Exception as e:
         logger.error(f"API: Error creating user {user_in.username}: {e}", exc_info=True)
         raise HTTPException(500, "Failed to create user")
@@ -145,7 +145,7 @@ async def upload_avatar(
         user.avatar = avatar
         await db.commit()
         await db.refresh(user)
-        return user
+        return UserOut.model_validate(user)
     except HTTPException:
         raise
     except Exception as e:
