@@ -1,25 +1,51 @@
-name: CI - Test and Lint
+name: CI/CD - FastAPI Test & Deploy
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger on push to main branch
 
 jobs:
-  test:
+  test-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      # Use SQLite for CI tests
+      DATABASE_URL: "sqlite+aiosqlite:///./test.db"
+      REDIS_URL: "redis://localhost:6379/0"  # Dummy for CI
+      PORT: 8000
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
-        run: pip install -r ai_content_platform/requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r ai_content_platform/requirements.txt
 
       - name: Run tests and lint
         run: |
           pytest ai_content_platform/tests
           flake8 ai_content_platform/app
+
+      - name: Trigger Render deployment
+        if: success()  # Only deploy if tests/lint pass
+        run: |
+          echo "Deploying to Render..."
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{"clearCache":true}'
+          echo "Deployment triggered successfully."
