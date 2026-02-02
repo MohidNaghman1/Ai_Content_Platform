@@ -33,7 +33,21 @@ async def test_create_article_with_new_and_existing_tags():
 
         from ai_content_platform.app.modules.auth.models import Permission, role_permissions
         async def ensure_admin_and_permission():
-            async with AsyncTestingSessionLocal() as session:
+                        # Get or create summarize_content permission
+                        summ_perm = (await session.execute(select(Permission).where(Permission.name == 'summarize_content'))).scalar_one_or_none()
+                        if not summ_perm:
+                            summ_perm = Permission(name='summarize_content', description='Can summarize articles')
+                            session.add(summ_perm)
+                            await session.commit()
+                            await session.refresh(summ_perm)
+                        # Link summarize_content permission to admin role if not already
+                        summ_rp_exists = (await session.execute(role_permissions.select().where(
+                            (role_permissions.c.role_id == admin_role.id) & (role_permissions.c.permission_id == summ_perm.id)
+                        ))).first()
+                        if not summ_rp_exists:
+                            await session.execute(role_permissions.insert().values(role_id=admin_role.id, permission_id=summ_perm.id))
+                            await session.commit()
+        async with AsyncTestingSessionLocal() as session:
                 users_table = Base.metadata.tables['users']
                 # Get user
                 user = (await session.execute(select(users_table).where(users_table.c.username == 'alice_test'))).first()
