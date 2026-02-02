@@ -80,7 +80,12 @@ async def create_user(db: AsyncSession, user_data):
             role=user_data["role"] if isinstance(user_data, dict) else user_data.role,
         )
         db.add(user)
-        await db.flush()  # user.id available
+        try:
+            await db.flush()  # user.id available
+        except Exception as e:
+            await db.rollback()
+            logger.error(f"Error during flush: {e}", exc_info=True)
+            raise
 
         # Fetch the Role object from the DB
         role_name = user_data["role"] if isinstance(user_data, dict) else user_data.role
