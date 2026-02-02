@@ -32,7 +32,7 @@ async def get_db():
 
 async def get_current_user(
 	token: str = Depends(oauth2_scheme),
-	db: AsyncSession = Depends(get_db()),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Dependency to extract and validate the current user from a JWT token.
