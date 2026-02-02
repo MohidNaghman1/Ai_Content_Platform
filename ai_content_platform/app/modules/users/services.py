@@ -10,7 +10,7 @@ from ai_content_platform.app.modules.users.models import User
 from passlib.context import CryptContext
 from ai_content_platform.app.modules.auth.models import Role
 from ai_content_platform.app.shared.logging import get_logger
-from ai_content_platform.app.modules.auth.models import user_roles as UserRole
+from ai_content_platform.app.db.models import user_roles
 
 logger = get_logger(__name__)
 
@@ -87,9 +87,14 @@ async def create_user(db: AsyncSession, user_data):
         result = await db.execute(select(Role).where(Role.name == role_name))
         role_obj = result.scalar_one()
 
-        # Assign role via association table (UserRole)
-        user_role = UserRole(user_id=user.id, role_id=role_obj.id)
-        db.add(user_role)
+
+        # Assign role via association table (user_roles)
+        await db.execute(
+            user_roles.insert().values(
+                user_id=user.id,
+                role_id=role_obj.id,
+            )
+        )
 
         await db.commit()
         await db.refresh(user)
