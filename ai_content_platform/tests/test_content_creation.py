@@ -26,6 +26,15 @@ def mock_gemini(monkeypatch):
 
 @pytest.mark.usefixtures("client")
 def test_create_article_with_new_and_existing_tags(client):
+        # Debug: Print user roles and permissions after login
+    from ai_content_platform.app.modules.users.services import get_user_by_username
+    async def debug_user_permissions():
+           async with AsyncTestingSessionLocal() as session:
+                user = await get_user_by_username(session, "alice_test")
+                print("User roles:", [r.name for r in user.roles])
+                print("User permissions:", [p.name for r in user.roles for p in r.permissions])
+
+    asyncio.run(debug_user_permissions())
     # Register user
     client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
 
