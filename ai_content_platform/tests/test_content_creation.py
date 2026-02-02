@@ -107,10 +107,10 @@ async def test_create_article_with_new_and_existing_tags(client):
             print("User permissions:", [p.name for r in user.roles for p in r.permissions])
 
         # Helper to robustly get JSON or print error
-        async def get_json_or_debug(response):
+        def get_json_or_debug(response):
             try:
                 if response.headers.get("content-type", "").startswith("application/json"):
-                    return await response.json()
+                    return response.json()
                 else:
                     print("Non-JSON response:", response.text)
                     return None
@@ -133,7 +133,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if response.status_code != 200:
             print("Create article failed:", response.status_code, response.text)
         assert response.status_code == 200
-        data = await get_json_or_debug(response)
+        data = get_json_or_debug(response)
         assert data is not None, f"Create article response is None! Status: {response.status_code}, Text: {response.text}"
         assert data["title"] == "AI Content Test"
         assert set([t["name"] for t in data["tags"]]) == {"ai", "fastapi", "python"}
@@ -152,7 +152,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if response2.status_code != 200:
             print("Create 2nd article failed:", response2.status_code, response2.text)
         assert response2.status_code == 200
-        data2 = await get_json_or_debug(response2)
+        data2 = get_json_or_debug(response2)
         assert data2 is not None, f"Create 2nd article response is None! Status: {response2.status_code}, Text: {response2.text}"
         assert data2["title"] == "Second Article"
         assert set([t["name"] for t in data2["tags"]]) == {"ai", "newtag"}
@@ -162,7 +162,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if tags_response.status_code != 200:
             print("List tags failed:", tags_response.status_code, tags_response.text)
         assert tags_response.status_code == 200
-        tags = await get_json_or_debug(tags_response)
+        tags = get_json_or_debug(tags_response)
         assert tags is not None, f"List tags response is None! Status: {tags_response.status_code}, Text: {tags_response.text}"
         tag_names = [t["name"] for t in tags]
         for name in ["ai", "fastapi", "python", "newtag"]:
@@ -173,7 +173,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if articles_response.status_code != 200:
             print("List articles failed:", articles_response.status_code, articles_response.text)
         assert articles_response.status_code == 200
-        articles = await get_json_or_debug(articles_response)
+        articles = get_json_or_debug(articles_response)
         assert articles is not None, f"List articles response is None! Status: {articles_response.status_code}, Text: {articles_response.text}"
         assert len(articles) >= 2
         titles = [a["title"] for a in articles]
@@ -192,7 +192,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if update_response.status_code != 200:
             print("Update article failed:", update_response.status_code, update_response.text)
         assert update_response.status_code == 200
-        updated = await get_json_or_debug(update_response)
+        updated = get_json_or_debug(update_response)
         assert updated is not None, f"Update article response is None! Status: {update_response.status_code}, Text: {update_response.text}"
         updated_tag_names = [t["name"] for t in updated["tags"]]
         for name in ["ai", "fastapi", "extratag"]:
@@ -212,7 +212,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if ai_gen_response.status_code != 200:
             print("AI generate failed:", ai_gen_response.status_code, ai_gen_response.text)
         assert ai_gen_response.status_code == 200
-        ai_data = await get_json_or_debug(ai_gen_response)
+        ai_data = get_json_or_debug(ai_gen_response)
         assert ai_data is not None, f"AI generate response is None! Status: {ai_gen_response.status_code}, Text: {ai_gen_response.text}"
         assert ai_data["title"] == "AI Generated Article"
         assert "ai" in [t["name"] for t in ai_data["tags"]]
@@ -226,7 +226,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if ai_sum_response.status_code != 200:
             print("AI summarize failed:", ai_sum_response.status_code, ai_sum_response.text)
         assert ai_sum_response.status_code == 200
-        ai_sum_data = await get_json_or_debug(ai_sum_response)
+        ai_sum_data = get_json_or_debug(ai_sum_response)
         assert ai_sum_data is not None, f"AI summarize response is None! Status: {ai_sum_response.status_code}, Text: {ai_sum_response.text}"
         assert ai_sum_data["summary"]
         assert len(ai_sum_data["summary"]) > 0
@@ -236,7 +236,7 @@ async def test_create_article_with_new_and_existing_tags(client):
         if del_response.status_code != 200:
             print("Delete article failed:", del_response.status_code, del_response.text)
         assert del_response.status_code == 200
-        del_data = await get_json_or_debug(del_response)
+        del_data = get_json_or_debug(del_response)
         assert del_data is not None, f"Delete article response is None! Status: {del_response.status_code}, Text: {del_response.text}"
         assert del_data["detail"] == "Deleted"
 
