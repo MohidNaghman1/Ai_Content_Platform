@@ -27,3 +27,7 @@ def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+@app.get("/admin", dependencies=[Depends(require_role("admin"))])
+async def admin_data():
+    return {"admin_data": "This is sensitive admin data."}
