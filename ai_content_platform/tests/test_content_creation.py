@@ -3,13 +3,10 @@ from ai_content_platform.app.modules.auth.models import Role, user_roles
 from ai_content_platform.app.database import Base
 from sqlalchemy import select
 from ai_content_platform.app.modules.users.services import get_user_by_username
-import asyncio
+from ai_content_platform.app.main import app as fastapi_app
 from ai_content_platform.tests.conftest import AsyncTestingSessionLocal
-from ai_content_platform.app.shared.dependencies import get_db
 import pytest
-import pytest_asyncio
 import httpx
-from fastapi import FastAPI
 from ai_content_platform.app.modules.content import gemini_service
 
 @pytest.fixture(autouse=True)
