@@ -1,8 +1,15 @@
 import pytest
+import pytest_asyncio
+import httpx
+from ai_content_platform.app.main import app as fastapi_app
 
+@pytest.fixture
+async def client():
+    async with httpx.AsyncClient(app=fastapi_app, base_url="http://testserver") as c:
+        yield c
 
-@pytest.mark.usefixtures("client")
-def test_register_login_refresh_rbac(client):
+@pytest.mark.asyncio
+async def test_register_login_refresh_rbac(client):
     # Register admin user
     client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
     # Register normal user
