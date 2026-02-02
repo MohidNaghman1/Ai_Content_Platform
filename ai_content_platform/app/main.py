@@ -20,6 +20,10 @@ app.include_router(notifications_router)
 app.include_router(admin_router)
 
 # Example admin-only route
-@app.get("/admin")
-def read_admin_data(current_user: dict = Depends(require_role("admin"))):
-    return {"admin_data": "Secret admin stuff!", "user": current_user}
+@app.get("/")
+def root():
+    return {"message": "Welcome to the AI Content Platform API"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
