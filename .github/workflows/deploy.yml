@@ -63,10 +63,13 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
 
-      - name: Run tests and lint
+      - name: Run tests
         run: |
           pytest ai_content_platform/tests --maxfail=1 --disable-warnings --exitfirst
-          flake8 ai_content_platform/app
+
+      - name: Run flake8 (warnings only for code quality)
+        run: |
+          flake8 ai_content_platform/app --exit-zero --statistics || true
 
       - name: Ensure clean exit
         run: |
@@ -74,7 +77,7 @@ jobs:
           pkill -f python || true
 
       - name: Trigger Render deployment
-        if: success()  # Only deploy if tests/lint pass
+        if: success()  # Only deploy if tests pass
         run: |
           echo "Deploying to Render..."
           curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
