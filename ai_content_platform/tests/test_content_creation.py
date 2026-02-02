@@ -29,12 +29,33 @@ def test_create_article_with_new_and_existing_tags(client):
     # Register user
     client.post("/auth/register", json={"username": "alice_test", "email": "alice@example.com", "password": "string", "role": "admin"})
 
-    async def assign_admin_role():
+    from ai_content_platform.app.modules.auth.models import Permission, role_permissions
+    async def ensure_admin_and_permission():
         async with AsyncTestingSessionLocal() as session:
             users_table = Base.metadata.tables['users']
+            # Get user
             user = (await session.execute(select(users_table).where(users_table.c.username == 'alice_test'))).first()
+            # Get or create admin role
             admin_role = (await session.execute(select(Role).where(Role.name == 'admin'))).scalar_one_or_none()
-            if user and admin_role:
+            if not admin_role:
+                admin_role = Role(name='admin')
+                session.add(admin_role)
+                await session.commit()
+                await session.refresh(admin_role)
+            # Get or create generate_content permission
+            perm = (await session.execute(select(Permission).where(Permission.name == 'generate_content'))).scalar_one_or_none()
+            if not perm:
+                perm = Permission(name='generate_content', description='Can generate AI content')
+                session.add(perm)
+                await session.commit()
+                await session.refresh(perm)
+            # Link permission to admin role if not already
+            rp_exists = (await session.execute(role_permissions.select().where((role_permissions.c.role_id == admin_role.id) & (role_permissions.c.permission_id == perm.id)))).first()
+            if not rp_exists:
+                await session.execute(role_permissions.insert().values(role_id=admin_role.id, permission_id=perm.id))
+                await session.commit()
+            # Assign admin role to user if not already
+            if user:
                 user_row = user[0]
                 if hasattr(user_row, 'id'):
                     user_id = user_row.id
@@ -44,12 +65,12 @@ def test_create_article_with_new_and_existing_tags(client):
                     user_id = user_row[0]
                 else:
                     raise Exception(f"Unexpected user row type: {type(user_row)}")
-                exists = (await session.execute(select(user_roles).where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id)))).first()
-                if not exists:
+                ur_exists = (await session.execute(user_roles.select().where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id)))).first()
+                if not ur_exists:
                     await session.execute(user_roles.insert().values(user_id=user_id, role_id=admin_role.id))
                     await session.commit()
 
-    asyncio.run(assign_admin_role())
+    asyncio.run(ensure_admin_and_permission())
 
     # Now login
     login_response = client.post("/auth/login", data={"username": "alice_test", "password": "string"})
