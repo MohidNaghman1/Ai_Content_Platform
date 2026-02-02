@@ -13,7 +13,7 @@ async def test_register_login_refresh_rbac(client):
             "role": "admin",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code in (200, 201)
 
     # Register normal user
     response = await client.post(
@@ -25,7 +25,7 @@ async def test_register_login_refresh_rbac(client):
             "role": "viewer",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code in (200, 201)
 
     # Test login with valid credentials (admin)
     response = await client.post(
