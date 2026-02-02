@@ -76,9 +76,8 @@ async def create_user(db: AsyncSession, user_data):
             email=(
                 user_data["email"] if isinstance(user_data, dict) else user_data.email
             ),
-            hashed_password=hashed_password,
-            role=user_data["role"] if isinstance(user_data, dict) else user_data.role,
-        )
+            hashed_password=hashed_password)
+        
         db.add(user)
         try:
             await db.flush()  # user.id available
@@ -90,7 +89,11 @@ async def create_user(db: AsyncSession, user_data):
         # Fetch the Role object from the DB
         role_name = user_data["role"] if isinstance(user_data, dict) else user_data.role
         result = await db.execute(select(Role).where(Role.name == role_name))
-        role_obj = result.scalar_one()
+        role_obj = result.scalar_one_or_none()
+        if not role_obj:
+            await db.rollback()
+            logger.error(f"Role '{role_name}' does not exist.")
+            raise ValueError(f"Role '{role_name}' does not exist.")
 
         # Assign role via association table (user_roles)
         await db.execute(
