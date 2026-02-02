@@ -20,9 +20,19 @@ logger = get_logger(__name__)
 # Set tokenUrl to /auth/login so Swagger UI Authorize button works correctly
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+
+# Database session dependency
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+
 async def get_current_user(
 	token: str = Depends(oauth2_scheme),
-	db: AsyncSession = Depends(lambda: next(get_db())),
+	db: AsyncSession = Depends(get_db()),
 ):
 	"""
 	Dependency to extract and validate the current user from a JWT token.
@@ -122,10 +132,3 @@ def require_role(required_role: str):
 			raise HTTPException(500, f"Failed to check role '{required_role}'")
 	return role_dependency
 
-# Database session dependency
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
