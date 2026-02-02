@@ -25,10 +25,6 @@ def mock_gemini(monkeypatch):
         return "This is AI generated content."
     monkeypatch.setattr(gemini_service.GeminiService, "generate_text", mock_generate_text)
 
-@pytest.fixture
-async def client():
-    async with httpx.AsyncClient(app=fastapi_app, base_url="http://testserver") as client:
-        yield client
 
 @pytest.mark.asyncio
 async def test_create_article_with_new_and_existing_tags(client):

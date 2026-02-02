@@ -12,6 +12,13 @@ from ai_content_platform.app.modules.auth.models import Role
 
 TEST_DB_PATH = "./test.db"
 TEST_DB_URL = f"sqlite+aiosqlite:///{TEST_DB_PATH}"
+import httpx
+from ai_content_platform.app.main import app as fastapi_app
+
+@pytest.fixture
+async def client():
+    async with httpx.AsyncClient(app=fastapi_app, base_url="http://testserver") as c:
+        yield c
 
 engine = create_async_engine(
     TEST_DB_URL,
