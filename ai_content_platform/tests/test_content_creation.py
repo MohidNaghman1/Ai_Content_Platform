@@ -35,7 +35,15 @@ def test_create_article_with_new_and_existing_tags(client):
             user = (await session.execute(select(users_table).where(users_table.c.username == 'alice_test'))).first()
             admin_role = (await session.execute(select(Role).where(Role.name == 'admin'))).scalar_one_or_none()
             if user and admin_role:
-                user_id = user[0].id if hasattr(user[0], 'id') else user[0][0]
+                user_row = user[0]
+                if hasattr(user_row, 'id'):
+                    user_id = user_row.id
+                elif isinstance(user_row, int):
+                    user_id = user_row
+                elif isinstance(user_row, (tuple, list)):
+                    user_id = user_row[0]
+                else:
+                    raise Exception(f"Unexpected user row type: {type(user_row)}")
                 exists = (await session.execute(select(user_roles).where((user_roles.c.user_id == user_id) & (user_roles.c.role_id == admin_role.id)))).first()
                 if not exists:
                     await session.execute(user_roles.insert().values(user_id=user_id, role_id=admin_role.id))
