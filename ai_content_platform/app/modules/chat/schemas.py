@@ -2,12 +2,15 @@ from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
+
 class MessageBase(BaseModel):
     content: str
     sender: str  # 'user' or 'assistant'
 
+
 class MessageCreate(MessageBase):
     pass
+
 
 class MessageOut(MessageBase):
     id: int
@@ -15,11 +18,14 @@ class MessageOut(MessageBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ConversationBase(BaseModel):
     title: Optional[str] = None
 
+
 class ConversationCreate(ConversationBase):
     pass
+
 
 class ConversationOut(ConversationBase):
     id: int
@@ -27,6 +33,7 @@ class ConversationOut(ConversationBase):
     messages: List[MessageOut] = []
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class TokenUsageOut(BaseModel):
     tokens_used: int

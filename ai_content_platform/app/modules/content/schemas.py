@@ -1,12 +1,15 @@
-from pydantic import BaseModel,ConfigDict
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
+
 
 class TagBase(BaseModel):
     name: str
 
+
 class TagCreate(TagBase):
     pass
+
 
 class TagOut(TagBase):
     id: int
@@ -19,8 +22,10 @@ class ArticleBase(BaseModel):
     summary: Optional[str] = None
     tag_names: Optional[List[str]] = []
 
+
 class ArticleCreate(ArticleBase):
     pass
+
 
 class ArticleUpdate(BaseModel):
     title: Optional[str] = None
@@ -28,11 +33,12 @@ class ArticleUpdate(BaseModel):
     summary: Optional[str] = None
     tag_names: Optional[List[str]] = []
 
+
 class ArticleOut(ArticleBase):
     id: int
     title: str
     created_at: datetime
     updated_at: datetime
     tags: List[TagOut] = []
-    
+
     model_config = ConfigDict(from_attributes=True)

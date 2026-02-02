@@ -1,9 +1,10 @@
-
 # main.py or worker.py
 from ai_content_platform.app.events.subscriber import create_subscriber
 import threading
 from ai_content_platform.app.shared.logging import get_logger
+
 logger = get_logger(__name__)
+
 
 def start_all_subscribers():
     """Start subscribers for all streams in separate threads."""
@@ -12,9 +13,7 @@ def start_all_subscribers():
     for stream in streams:
         try:
             thread = threading.Thread(
-                target=create_subscriber,
-                args=(stream,),
-                daemon=True
+                target=create_subscriber, args=(stream,), daemon=True
             )
             thread.start()
             threads.append(thread)
@@ -24,6 +23,7 @@ def start_all_subscribers():
     # Keep main thread alive
     for thread in threads:
         thread.join()
+
 
 if __name__ == "__main__":
     start_all_subscribers()

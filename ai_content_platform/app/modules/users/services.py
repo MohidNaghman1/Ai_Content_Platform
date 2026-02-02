@@ -1,8 +1,8 @@
-
 """
 User service functions: hashing, DB queries, creation.
 All business logic for user management.
 """
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from ai_content_platform.app.events.publishers import publish_event
 from sqlalchemy.future import select
@@ -10,6 +10,7 @@ from ai_content_platform.app.modules.users.models import User
 from passlib.context import CryptContext
 from ai_content_platform.app.modules.auth.models import Role
 from ai_content_platform.app.shared.logging import get_logger
+
 logger = get_logger(__name__)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -49,13 +50,8 @@ async def get_user_by_username(db: AsyncSession, username: str):
         return None
 
 
-
 async def create_user(
-    db: AsyncSession,
-    username: str,
-    email: str,
-    password: str,
-    role: str
+    db: AsyncSession, username: str, email: str, password: str, role: str
 ):
     logger.info(f"Creating user: {username}")
     try:
@@ -81,13 +77,15 @@ async def create_user(
             publish_event(
                 stream_name="notifications",
                 event_type="USER_REGISTERED",
-                payload={"user_id": user.id, "message": f"Welcome, {user.username}!"}
+                payload={"user_id": user.id, "message": f"Welcome, {user.username}!"},
             )
             logger.info(f"Published USER_REGISTERED event for user {user.id}")
         except Exception as e:
-            logger.error(f"Error publishing USER_REGISTERED event for user {user.id}: {e}", exc_info=True)
+            logger.error(
+                f"Error publishing USER_REGISTERED event for user {user.id}: {e}",
+                exc_info=True,
+            )
         return user
     except Exception as e:
         logger.error(f"Error creating user {username}: {e}", exc_info=True)
         raise
-

@@ -4,15 +4,17 @@ Revision ID: 20260201_roles_permissions
 Revises: 91d572d3d9da
 Create Date: 2026-02-01 08:00:00
 """
+
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision: str = '20260201_roles_permissions'
-down_revision: Union[str, Sequence[str], None] = '91d572d3d9da'
+revision: str = "20260201_roles_permissions"
+down_revision: Union[str, Sequence[str], None] = "91d572d3d9da"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
 
 def upgrade() -> None:
     # Insert roles
@@ -50,8 +52,11 @@ def upgrade() -> None:
     WHERE r.name = 'creator';
     """)
 
+
 def downgrade() -> None:
     # Remove role-permission assignments
-    op.execute("DELETE FROM role_permissions WHERE role_id IN (SELECT id FROM roles WHERE name IN ('admin', 'creator', 'viewer'));")
+    op.execute(
+        "DELETE FROM role_permissions WHERE role_id IN (SELECT id FROM roles WHERE name IN ('admin', 'creator', 'viewer'));"
+    )
     # Remove roles
     op.execute("DELETE FROM roles WHERE name IN ('admin', 'creator', 'viewer');")

@@ -1,24 +1,45 @@
-# Admin dashboard services for user management, content moderation, analytics, and system health monitoring
+# Admin dashboard services for user management, content moderation,
+# analytics, and system health monitoring
 from ai_content_platform.app.shared.logging import get_logger
 from fastapi import HTTPException
 from ai_content_platform.app.shared.dependencies import get_db
 from ai_content_platform.app.modules.users.models import User
-from ai_content_platform.app.modules.users.schemas import UserCreate, UserOut, UserUpdate
-from ai_content_platform.app.modules.users.services import get_user_by_username, get_password_hash, create_user
+from ai_content_platform.app.modules.users.schemas import (
+    UserCreate,
+    UserOut,
+    UserUpdate,
+)
+from ai_content_platform.app.modules.users.services import (
+    get_user_by_username,
+    get_password_hash,
+    create_user,
+)
 from ai_content_platform.app.modules.content.models import Article
-from ai_content_platform.app.modules.content.services import create_article, list_articles, update_article, delete_article
+from ai_content_platform.app.modules.content.services import (
+    create_article,
+    list_articles,
+    update_article,
+    delete_article,
+)
 from ai_content_platform.app.modules.content.gemini_service import GeminiService
-from ai_content_platform.app.modules.content.schemas import ArticleCreate, ArticleUpdate, ArticleOut
+from ai_content_platform.app.modules.content.schemas import (
+    ArticleCreate,
+    ArticleUpdate,
+    ArticleOut,
+)
 from ai_content_platform.app.modules.chat.models import Conversation
 from ai_content_platform.app.modules.chat.services import get_token_usage
 from sqlalchemy import func
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-import os, traceback
+import os
+import traceback
 
 logger = get_logger(__name__)
 
 # User management
+
+
 async def get_all_users():
     logger.info("Fetching all users from database")
     try:
@@ -30,6 +51,7 @@ async def get_all_users():
     except Exception as e:
         logger.error(f"Error fetching users: {e}", exc_info=True)
         raise
+
 
 async def create_user_service(user: UserCreate):
     logger.info(f"Creating user: {user.username}")
@@ -45,6 +67,7 @@ async def create_user_service(user: UserCreate):
     except Exception as e:
         logger.error(f"Error creating user {user.username}: {e}", exc_info=True)
         raise
+
 
 async def update_user_service(user_id: int, update: UserUpdate):
     logger.info(f"Updating user: {user_id}")
@@ -68,6 +91,7 @@ async def update_user_service(user_id: int, update: UserUpdate):
         logger.error(f"Error updating user {user_id}: {e}", exc_info=True)
         raise
 
+
 async def delete_user_service(user_id: int):
     logger.info(f"Deleting user: {user_id}")
     try:
@@ -84,7 +108,10 @@ async def delete_user_service(user_id: int):
         logger.error(f"Error deleting user {user_id}: {e}", exc_info=True)
         raise
 
+
 # Article management
+
+
 async def get_all_articles():
     logger.info("Fetching all articles from database")
     try:
@@ -98,22 +125,28 @@ async def get_all_articles():
         logger.error(f"Error fetching articles: {e}", exc_info=True)
         raise
 
+
 async def create_article_service(article: ArticleCreate):
     logger.info(f"Creating article: {article.title}")
     try:
         async with get_db() as db:
-            new_article = await create_article(db, article.title, article.content, article.summary, article.tag_names)
+            new_article = await create_article(
+                db, article.title, article.content, article.summary, article.tag_names
+            )
             logger.info(f"Article created: {article.title}")
             return ArticleOut.model_validate(new_article)
     except Exception as e:
         logger.error(f"Error creating article {article.title}: {e}", exc_info=True)
         raise
 
+
 async def update_article_service(article_id: int, update: ArticleUpdate):
     logger.info(f"Updating article: {article_id}")
     try:
         async with get_db() as db:
-            updated = await update_article(db, article_id, **update.dict(exclude_unset=True))
+            updated = await update_article(
+                db, article_id, **update.dict(exclude_unset=True)
+            )
             if not updated:
                 logger.error(f"Article not found: {article_id}")
                 raise HTTPException(status_code=404, detail="Article not found")
@@ -122,6 +155,7 @@ async def update_article_service(article_id: int, update: ArticleUpdate):
     except Exception as e:
         logger.error(f"Error updating article {article_id}: {e}", exc_info=True)
         raise
+
 
 async def delete_article_service(article_id: int):
     logger.info(f"Deleting article: {article_id}")
@@ -137,18 +171,22 @@ async def delete_article_service(article_id: int):
         logger.error(f"Error deleting article {article_id}: {e}", exc_info=True)
         raise
 
+
 # Moderation
+
+
 async def get_flagged_content():
     logger.info("Fetching flagged content")
     try:
         async with get_db() as db:
-            result = await db.execute(select(Article).where(Article.flagged == True))
+            result = await db.execute(select(Article).where(Article.flagged))
             flagged = result.scalars().all()
             logger.info(f"Fetched {len(flagged)} flagged articles")
             return [ArticleOut.model_validate(a) for a in flagged]
     except Exception as e:
         logger.error(f"Error fetching flagged content: {e}", exc_info=True)
         raise
+
 
 async def moderate_article_service(article_id: int, action: str):
     logger.info(f"Moderating article: {article_id} with action: {action}")
@@ -174,13 +212,18 @@ async def moderate_article_service(article_id: int, action: str):
             await db.commit()
             await db.refresh(article)
             article.summary += f"\n[AI Suggestion: {ai_suggestion}]"
-            logger.info(f"Moderation complete for article: {article_id} with action: {action}")
+            logger.info(
+                f"Moderation complete for article: {article_id} with action: {action}"
+            )
             return ArticleOut.model_validate(article)
     except Exception as e:
         logger.error(f"Error moderating article {article_id}: {e}", exc_info=True)
         raise
 
+
 # Analytics
+
+
 async def get_analytics_stats():
     logger.info("Fetching analytics stats")
     try:
@@ -193,13 +236,22 @@ async def get_analytics_stats():
             for conv_id in conversation_ids:
                 token_usages = await get_token_usage(db, conv_id)
                 ai_usage += sum(tu.tokens_used for tu in token_usages)
-            logger.info(f"Analytics: users={user_count}, articles={article_count}, ai_usage={ai_usage}")
-            return {"users": user_count, "articles": article_count, "ai_usage": ai_usage}
+            logger.info(
+                f"Analytics: users={user_count}, articles={article_count}, ai_usage={ai_usage}"
+            )
+            return {
+                "users": user_count,
+                "articles": article_count,
+                "ai_usage": ai_usage,
+            }
     except Exception as e:
         logger.error(f"Error fetching analytics stats: {e}", exc_info=True)
         raise
 
+
 # System health
+
+
 async def get_system_health():
     logger.info("Checking system health")
     try:

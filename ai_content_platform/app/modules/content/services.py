@@ -1,4 +1,3 @@
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from ai_content_platform.app.modules.content.models import Article, Tag
@@ -7,24 +6,37 @@ from typing import List, Optional
 import os
 from ai_content_platform.app.modules.content.gemini_service import GeminiService
 from ai_content_platform.app.shared.logging import get_logger
+
 logger = get_logger(__name__)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "your-gemini-api-key")
 gemini_service = GeminiService(api_key=GEMINI_API_KEY)
 
 
-
-async def create_article(db: AsyncSession, title: str, content: str, summary: Optional[str], tag_names: Optional[List[str]] = None, flagged: bool = False):
+async def create_article(
+    db: AsyncSession,
+    title: str,
+    content: str,
+    summary: Optional[str],
+    tag_names: Optional[List[str]] = None,
+    flagged: bool = False,
+):
     logger.info(f"Creating article: {title}")
     try:
-        article = Article(title=title, content=content, summary=summary, flagged=flagged)
+        article = Article(
+            title=title, content=content, summary=summary, flagged=flagged
+        )
         tags = []
         if tag_names:
-            tag_names = list({name.strip().lower() for name in tag_names if name.strip()})
+            tag_names = list(
+                {name.strip().lower() for name in tag_names if name.strip()}
+            )
             if tag_names:
                 result = await db.execute(select(Tag).where(Tag.name.in_(tag_names)))
                 existing_tags = result.scalars().all()
                 existing_names = {t.name for t in existing_tags}
-                new_tags = [Tag(name=name) for name in tag_names if name not in existing_names]
+                new_tags = [
+                    Tag(name=name) for name in tag_names if name not in existing_names
+                ]
                 db.add_all(new_tags)
                 await db.flush()
                 tags = existing_tags + new_tags
@@ -45,6 +57,7 @@ async def create_article(db: AsyncSession, title: str, content: str, summary: Op
         logger.error(f"Error creating article {title}: {e}", exc_info=True)
         raise
 
+
 async def get_article(db: AsyncSession, article_id: int):
     logger.info(f"Fetching article: {article_id}")
     try:
@@ -59,14 +72,15 @@ async def get_article(db: AsyncSession, article_id: int):
         logger.error(f"Error fetching article {article_id}: {e}", exc_info=True)
         raise
 
+
 async def update_article(db: AsyncSession, article_id: int, **kwargs):
     logger.info(f"Updating article: {article_id}")
     try:
         stmt = (
-                select(Article)
-                .options(selectinload(Article.tags))  
-                .where(Article.id == article_id)
-            )  
+            select(Article)
+            .options(selectinload(Article.tags))
+            .where(Article.id == article_id)
+        )
         result = await db.execute(stmt)
         article = result.scalars().first()
         if not article:
@@ -77,11 +91,15 @@ async def update_article(db: AsyncSession, article_id: int, **kwargs):
             if hasattr(article, key) and value is not None:
                 setattr(article, key, value)
         if tag_names is not None:
-            tag_names = list({name.strip().lower() for name in tag_names if name.strip()})
+            tag_names = list(
+                {name.strip().lower() for name in tag_names if name.strip()}
+            )
             result = await db.execute(select(Tag).where(Tag.name.in_(tag_names)))
             existing_tags = result.scalars().all()
             existing_names = {t.name for t in existing_tags}
-            new_tags = [Tag(name=name) for name in tag_names if name not in existing_names]
+            new_tags = [
+                Tag(name=name) for name in tag_names if name not in existing_names
+            ]
             db.add_all(new_tags)
             await db.flush()
             article.tags = existing_tags + new_tags
@@ -99,6 +117,7 @@ async def update_article(db: AsyncSession, article_id: int, **kwargs):
         logger.error(f"Error updating article {article_id}: {e}", exc_info=True)
         raise
 
+
 async def delete_article(db: AsyncSession, article_id: int):
     logger.info(f"Deleting article: {article_id}")
     try:
@@ -114,6 +133,7 @@ async def delete_article(db: AsyncSession, article_id: int):
         logger.error(f"Error deleting article {article_id}: {e}", exc_info=True)
         raise
 
+
 async def list_articles(db: AsyncSession):
     logger.info("Listing all articles")
     try:
@@ -123,6 +143,7 @@ async def list_articles(db: AsyncSession):
     except Exception as e:
         logger.error(f"Error listing articles: {e}", exc_info=True)
         raise
+
 
 async def create_tag(db: AsyncSession, name: str):
     logger.info(f"Creating tag: {name}")
@@ -137,6 +158,7 @@ async def create_tag(db: AsyncSession, name: str):
         logger.error(f"Error creating tag {name}: {e}", exc_info=True)
         raise
 
+
 async def list_tags(db: AsyncSession):
     logger.info("Listing all tags")
     try:
@@ -146,6 +168,7 @@ async def list_tags(db: AsyncSession):
         logger.error(f"Error listing tags: {e}", exc_info=True)
         raise
 
+
 async def search_articles(db: AsyncSession, query: str):
     logger.info(f"Searching articles with query: {query}")
     try:
@@ -153,16 +176,27 @@ async def search_articles(db: AsyncSession, query: str):
         stmt = (
             select(Article)
             .options(selectinload(Article.tags))
-            .where(Article.title.ilike(f"%{query}%") | Article.content.ilike(f"%{query}%"))
+            .where(
+                Article.title.ilike(f"%{query}%") | Article.content.ilike(f"%{query}%")
+            )
         )
         result = await db.execute(stmt)
         return result.scalars().all()
     except Exception as e:
-        logger.error(f"Error searching articles with query '{query}': {e}", exc_info=True)
+        logger.error(
+            f"Error searching articles with query '{query}': {e}", exc_info=True
+        )
         raise
 
 
-async def ai_generate_article(db: AsyncSession, title: str, content: str, summary: Optional[str], tag_names: Optional[List[str]] = None, prompt: Optional[str] = None):
+async def ai_generate_article(
+    db: AsyncSession,
+    title: str,
+    content: str,
+    summary: Optional[str],
+    tag_names: Optional[List[str]] = None,
+    prompt: Optional[str] = None,
+):
     """
     Generate article content and summary using Gemini AI, then create the article.
     Flagged=True for AI-generated content.
@@ -172,11 +206,18 @@ async def ai_generate_article(db: AsyncSession, title: str, content: str, summar
         if not prompt:
             prompt = f"Generate a detailed article on the topic: '{title}'. Content: {content}"
         ai_content = await gemini_service.generate_text(prompt)
-        ai_summary = await gemini_service.generate_text(f"Summarize the following article in 2-3 sentences: {ai_content}")
-        return await create_article(db, title, ai_content, ai_summary, tag_names, flagged=True)
+        ai_summary = await gemini_service.generate_text(
+            f"Summarize the following article in 2-3 sentences: {ai_content}"
+        )
+        return await create_article(
+            db, title, ai_content, ai_summary, tag_names, flagged=True
+        )
     except Exception as e:
-        logger.error(f"Error in ai_generate_article for title '{title}': {e}", exc_info=True)
+        logger.error(
+            f"Error in ai_generate_article for title '{title}': {e}", exc_info=True
+        )
         raise
+
 
 async def ai_summarize_article(db: AsyncSession, article_id: int):
     logger.info(f"AI summarize article called for article_id: {article_id}")
@@ -185,7 +226,9 @@ async def ai_summarize_article(db: AsyncSession, article_id: int):
         if not article:
             logger.warning(f"Article not found for summarization: {article_id}")
             return None
-        summary_prompt = f"Summarize the following article in 2-3 sentences: {article.content}"
+        summary_prompt = (
+            f"Summarize the following article in 2-3 sentences: {article.content}"
+        )
         ai_summary = await gemini_service.generate_text(summary_prompt)
         article.summary = ai_summary
         await db.commit()
@@ -193,5 +236,8 @@ async def ai_summarize_article(db: AsyncSession, article_id: int):
         logger.info(f"Article summarized: {article_id}")
         return article
     except Exception as e:
-        logger.error(f"Error in ai_summarize_article for article_id {article_id}: {e}", exc_info=True)
+        logger.error(
+            f"Error in ai_summarize_article for article_id {article_id}: {e}",
+            exc_info=True,
+        )
         raise

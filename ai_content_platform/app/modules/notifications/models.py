@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from ai_content_platform.app.database import Base
 
+
 class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -13,10 +14,12 @@ class Notification(Base):
     read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
 class InAppNotificationStore:
     """
     Simulated in-app notification storage (in-memory for demo).
     """
+
     _notifications = []
 
     @classmethod

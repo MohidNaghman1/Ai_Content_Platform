@@ -35,6 +35,31 @@ jobs:
           pip install --upgrade pip
           pip install -r ai_content_platform/requirements.txt
 
+      - name: Install code formatters
+        run: |
+          pip install autopep8 black flake8
+
+      - name: Auto-format code with autopep8
+        run: |
+          autopep8 --in-place --aggressive --aggressive -r ai_content_platform/
+
+      - name: Format code with Black
+        run: |
+          black ai_content_platform/
+
+      - name: Commit formatting changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-format code with autopep8 and black [skip ci]"
+
+      - name: Push formatting changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
       - name: Run tests and lint
         run: |
           pytest ai_content_platform/tests --maxfail=1 --disable-warnings --exitfirst

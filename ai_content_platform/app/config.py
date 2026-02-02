@@ -2,6 +2,7 @@
 App configuration using Pydantic BaseSettings.
 Loads environment variables for DB and secret settings.
 """
+
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 from dotenv import load_dotenv
@@ -9,11 +10,13 @@ import os
 
 load_dotenv()
 
+
 class Settings(BaseSettings):
     """
     Settings class for application configuration.
     Loads DB and secret settings from environment variables or .env file.
     """
+
     DB_USER: str = os.getenv("DB_USER", "postgres")
     DB_PASSWORD: str = os.getenv("DB_PASSWORD", "password")
     DB_HOST: str = os.getenv("DB_HOST", "localhost")
@@ -28,6 +31,5 @@ class Settings(BaseSettings):
 
     model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
 
-    
 
 settings = Settings()
