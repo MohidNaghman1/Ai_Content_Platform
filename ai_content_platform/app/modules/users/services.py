@@ -55,15 +55,25 @@ async def create_user(db: AsyncSession, user_data):
     Create a user using user_data dict/object with keys: username, email, password, role.
     Inserts user, flushes for constraints, fetches role, assigns, commits, and rolls back on error.
     """
-    logger.info(f"Creating user: {getattr(user_data, 'username', None) or user_data.get('username')}")
+    logger.info(
+        f"Creating user: {getattr(user_data, 'username', None) or user_data.get('username')}"
+    )
     try:
         # Hash password
-        password = user_data["password"] if isinstance(user_data, dict) else user_data.password
+        password = (
+            user_data["password"] if isinstance(user_data, dict) else user_data.password
+        )
         hashed_password = get_password_hash(password)
         # Create user instance (without roles yet)
         user = User(
-            username=user_data["username"] if isinstance(user_data, dict) else user_data.username,
-            email=user_data["email"] if isinstance(user_data, dict) else user_data.email,
+            username=(
+                user_data["username"]
+                if isinstance(user_data, dict)
+                else user_data.username
+            ),
+            email=(
+                user_data["email"] if isinstance(user_data, dict) else user_data.email
+            ),
             hashed_password=hashed_password,
             role=user_data["role"] if isinstance(user_data, dict) else user_data.role,
         )
