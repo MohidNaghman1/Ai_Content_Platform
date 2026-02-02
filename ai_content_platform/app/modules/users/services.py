@@ -10,7 +10,7 @@ from ai_content_platform.app.modules.users.models import User
 from passlib.context import CryptContext
 from ai_content_platform.app.modules.auth.models import Role
 from ai_content_platform.app.shared.logging import get_logger
-from ai_content_platform.app.db.models import user_roles
+from ai_content_platform.app.modules.users.models import user_roles
 
 logger = get_logger(__name__)
 
