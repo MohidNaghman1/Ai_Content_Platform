@@ -5,6 +5,9 @@ on:
     branches:
       - main  # Trigger on push to main branch
 
+permissions:
+  contents: write  # Needed for push action
+
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
@@ -57,7 +60,7 @@ jobs:
       - name: Push formatting changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GH_PAT }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
 
       - name: Run tests and lint
