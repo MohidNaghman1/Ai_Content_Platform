@@ -10,6 +10,7 @@ from ai_content_platform.app.modules.users.models import User
 from passlib.context import CryptContext
 from ai_content_platform.app.modules.auth.models import Role
 from ai_content_platform.app.shared.logging import get_logger
+from ai_content_platform.app.modules.auth.models import user_roles as UserRole
 
 logger = get_logger(__name__)
 
@@ -60,6 +61,7 @@ async def create_user(db: AsyncSession, user_data):
         # Hash password
         password = user_data["password"] if isinstance(user_data, dict) else user_data.password
         hashed_password = get_password_hash(password)
+
         # Create user instance (without roles yet)
         user = User(
             username=user_data["username"] if isinstance(user_data, dict) else user_data.username,
@@ -68,13 +70,16 @@ async def create_user(db: AsyncSession, user_data):
             role=user_data["role"] if isinstance(user_data, dict) else user_data.role,
         )
         db.add(user)
-        await db.flush()  # force DB constraints NOW
+        await db.flush()  # user.id available
 
         # Fetch the Role object from the DB
         role_name = user_data["role"] if isinstance(user_data, dict) else user_data.role
         result = await db.execute(select(Role).where(Role.name == role_name))
         role_obj = result.scalar_one()
-        user.roles = [role_obj]
+
+        # Assign role via association table (UserRole)
+        user_role = UserRole(user_id=user.id, role_id=role_obj.id)
+        db.add(user_role)
 
         await db.commit()
         await db.refresh(user)
