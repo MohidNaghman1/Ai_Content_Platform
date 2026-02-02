@@ -130,9 +130,12 @@ def require_permission(permission: str):
 def require_role(required_role: str):
     async def role_dependency(user: User = Depends(get_current_user)):
         try:
-            if getattr(user, "role", None) != required_role:
+            # Check user's roles via many-to-many relationship
+            user_roles_list = getattr(user, "roles", [])
+            has_role = any(getattr(role, "name", None) == required_role for role in user_roles_list)
+            if not has_role:
                 logger.warning(
-                    f"Role '{required_role}' required, but user has role '{getattr(user, 'role', None)}'"
+                    f"Role '{required_role}' required, but user has roles {[r.name for r in user_roles_list]}"
                 )
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
