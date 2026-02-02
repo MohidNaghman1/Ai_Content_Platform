@@ -76,8 +76,9 @@ async def create_user(db: AsyncSession, user_data):
             email=(
                 user_data["email"] if isinstance(user_data, dict) else user_data.email
             ),
-            hashed_password=hashed_password)
-        
+            hashed_password=hashed_password,
+        )
+
         db.add(user)
         try:
             await db.flush()  # user.id available
