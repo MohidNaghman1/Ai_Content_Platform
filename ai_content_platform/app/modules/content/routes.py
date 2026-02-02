@@ -124,7 +124,6 @@ async def generate_article_ai(article: ArticleCreate, db: AsyncSession = Depends
 # AI-powered summarization (permission-based)
 @content_router.post(
     "/articles/{article_id}/summarize/",
-    response_model=str,
     dependencies=[Depends(require_permission("summarize_content"))]
 )
 async def summarize_article_ai(article_id: int, db: AsyncSession = Depends(get_db)):
@@ -134,7 +133,7 @@ async def summarize_article_ai(article_id: int, db: AsyncSession = Depends(get_d
         if not obj:
             logger.warning(f"API: Article not found for summarization: {article_id}")
             raise HTTPException(404, "Article not found")
-        return obj.summary
+        return {"summary": obj.summary}
     except HTTPException:
         raise
     except Exception as e:
