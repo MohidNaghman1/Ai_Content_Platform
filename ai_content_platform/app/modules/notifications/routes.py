@@ -11,13 +11,18 @@ from ai_content_platform.app.modules.notifications.schemas import (
 from typing import List
 from datetime import datetime
 from ai_content_platform.app.shared.logging import get_logger
+from ai_content_platform.app.shared.dependencies import require_permission
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 
-@router.post("/send", status_code=201)
+@router.post(
+    "/send",
+    status_code=201,
+    dependencies=[Depends(require_permission("send_notifications"))],
+)
 def send_notification(notification: NotificationCreate):
     """
     Send a notification by publishing to event stream.
@@ -52,7 +57,11 @@ def send_notification(notification: NotificationCreate):
         )
 
 
-@router.get("/{user_id}", response_model=List[NotificationResponse])
+@router.get(
+    "/{user_id}",
+    response_model=List[NotificationResponse],
+    dependencies=[Depends(require_permission("view_notifications"))],
+)
 def get_user_notifications(
     user_id: int,
     unread_only: bool = Query(False, description="Filter only unread notifications"),
@@ -82,7 +91,10 @@ def get_user_notifications(
         raise HTTPException(500, f"Failed to fetch notifications for user {user_id}")
 
 
-@router.get("/{user_id}/unread-count")
+@router.get(
+    "/{user_id}/unread-count",
+    dependencies=[Depends(require_permission("view_notifications"))],
+)
 def get_unread_count(user_id: int, db: Session = Depends(get_db)):
     """
     Get the count of unread in-app notifications for a user.
@@ -101,7 +113,10 @@ def get_unread_count(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(500, f"Failed to fetch unread count for user {user_id}")
 
 
-@router.patch("/{notification_id}/read")
+@router.patch(
+    "/{notification_id}/read",
+    dependencies=[Depends(require_permission("view_notifications"))],
+)
 def mark_notification_as_read(
     notification_id: int, request: MarkReadRequest, db: Session = Depends(get_db)
 ):
@@ -140,7 +155,10 @@ def mark_notification_as_read(
         raise HTTPException(500, f"Failed to mark notification as read")
 
 
-@router.patch("/{user_id}/read-all")
+@router.patch(
+    "/{user_id}/read-all",
+    dependencies=[Depends(require_permission("view_notifications"))],
+)
 def mark_all_notifications_as_read(user_id: int, db: Session = Depends(get_db)):
     """
     Mark all in-app notifications as read for a user.
@@ -165,7 +183,10 @@ def mark_all_notifications_as_read(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(500, f"Failed to mark all notifications as read")
 
 
-@router.delete("/{notification_id}")
+@router.delete(
+    "/{notification_id}",
+    dependencies=[Depends(require_permission("view_notifications"))],
+)
 def delete_notification(
     notification_id: int,
     user_id: int = Query(..., description="User ID for authorization"),
@@ -204,7 +225,10 @@ def delete_notification(
         raise HTTPException(500, f"Failed to delete notification")
 
 
-@router.get("/{user_id}/preferences")
+@router.get(
+    "/{user_id}/preferences",
+    dependencies=[Depends(require_permission("view_notifications"))],
+)
 def get_user_notification_preferences(user_id: int, db: Session = Depends(get_db)):
     """
     Get notification preferences for a user.

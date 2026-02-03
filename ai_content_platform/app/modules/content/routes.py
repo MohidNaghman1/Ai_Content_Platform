@@ -17,7 +17,11 @@ logger = get_logger(__name__)
 content_router = APIRouter(prefix="/content", tags=["content"])
 
 
-@content_router.post("/articles/", response_model=ArticleOut)
+@content_router.post(
+    "/articles/",
+    response_model=ArticleOut,
+    dependencies=[Depends(require_permission("edit_content"))],
+)
 async def create_article(article: ArticleCreate, db: AsyncSession = Depends(get_db)):
     logger.info(f"API: Creating article: {article.title}")
     try:
@@ -30,7 +34,11 @@ async def create_article(article: ArticleCreate, db: AsyncSession = Depends(get_
         raise HTTPException(500, "Failed to create article")
 
 
-@content_router.get("/articles/{article_id}", response_model=ArticleOut)
+@content_router.get(
+    "/articles/{article_id}",
+    response_model=ArticleOut,
+    dependencies=[Depends(require_permission("view_content"))],
+)
 async def get_article(article_id: int, db: AsyncSession = Depends(get_db)):
     logger.info(f"API: Fetching article: {article_id}")
     try:
@@ -46,7 +54,11 @@ async def get_article(article_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(500, "Failed to fetch article")
 
 
-@content_router.put("/articles/{article_id}", response_model=ArticleOut)
+@content_router.put(
+    "/articles/{article_id}",
+    response_model=ArticleOut,
+    dependencies=[Depends(require_permission("edit_content"))],
+)
 async def update_article(
     article_id: int, update: ArticleUpdate, db: AsyncSession = Depends(get_db)
 ):
@@ -66,7 +78,10 @@ async def update_article(
         raise HTTPException(500, "Failed to update article")
 
 
-@content_router.delete("/articles/{article_id}")
+@content_router.delete(
+    "/articles/{article_id}",
+    dependencies=[Depends(require_permission("delete_content"))],
+)
 async def delete_article(article_id: int, db: AsyncSession = Depends(get_db)):
     logger.info(f"API: Deleting article: {article_id}")
     try:
@@ -82,7 +97,11 @@ async def delete_article(article_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(500, "Failed to delete article")
 
 
-@content_router.get("/articles/", response_model=List[ArticleOut])
+@content_router.get(
+    "/articles/",
+    response_model=List[ArticleOut],
+    dependencies=[Depends(require_permission("view_content"))],
+)
 async def list_articles(db: AsyncSession = Depends(get_db)):
     logger.info("API: Listing all articles")
     try:
@@ -92,7 +111,11 @@ async def list_articles(db: AsyncSession = Depends(get_db)):
         raise HTTPException(500, "Failed to list articles")
 
 
-@content_router.post("/tags/", response_model=TagOut)
+@content_router.post(
+    "/tags/",
+    response_model=TagOut,
+    dependencies=[Depends(require_permission("edit_content"))],
+)
 async def create_tag(tag: TagCreate, db: AsyncSession = Depends(get_db)):
     logger.info(f"API: Creating tag: {tag.name}")
     try:
@@ -102,7 +125,11 @@ async def create_tag(tag: TagCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(500, "Failed to create tag")
 
 
-@content_router.get("/tags/", response_model=List[TagOut])
+@content_router.get(
+    "/tags/",
+    response_model=List[TagOut],
+    dependencies=[Depends(require_permission("view_content"))],
+)
 async def list_tags(db: AsyncSession = Depends(get_db)):
     logger.info("API: Listing all tags")
     try:
@@ -112,7 +139,11 @@ async def list_tags(db: AsyncSession = Depends(get_db)):
         raise HTTPException(500, "Failed to list tags")
 
 
-@content_router.get("/articles/search/", response_model=List[ArticleOut])
+@content_router.get(
+    "/articles/search/",
+    response_model=List[ArticleOut],
+    dependencies=[Depends(require_permission("view_content"))],
+)
 async def search_articles(q: str, db: AsyncSession = Depends(get_db)):
     logger.info(f"API: Searching articles with query: {q}")
     try:
