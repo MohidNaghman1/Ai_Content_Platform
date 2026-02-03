@@ -1,7 +1,9 @@
+import logging
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+
 from ai_content_platform.app.main import app as fastapi_app
 import httpx
 from ai_content_platform.app.shared.dependencies import get_db
-from ai_content_platform.app.database import Base
 from ai_content_platform.app.main import app
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
