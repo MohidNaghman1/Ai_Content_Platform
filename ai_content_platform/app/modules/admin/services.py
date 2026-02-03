@@ -43,11 +43,12 @@ logger = get_logger(__name__)
 async def get_all_users():
     logger.info("Fetching all users from database")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             result = await db.execute(select(User))
             users = result.scalars().all()
             logger.info(f"Fetched {len(users)} users")
             return [UserOut.model_validate(u) for u in users]
+            break
     except Exception as e:
         logger.error(f"Error fetching users: {e}", exc_info=True)
         raise
@@ -56,7 +57,7 @@ async def get_all_users():
 async def create_user_service(user: UserCreate):
     logger.info(f"Creating user: {user.username}")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             existing = await get_user_by_username(db, user.username)
             if existing:
                 logger.error(f"Username already exists: {user.username}")
@@ -64,6 +65,7 @@ async def create_user_service(user: UserCreate):
             new_user = await create_user(db, user)
             logger.info(f"User created: {user.username}")
             return UserOut.model_validate(new_user)
+            break
     except Exception as e:
         logger.error(f"Error creating user {user.username}: {e}", exc_info=True)
         raise
@@ -72,7 +74,7 @@ async def create_user_service(user: UserCreate):
 async def update_user_service(user_id: int, update: UserUpdate):
     logger.info(f"Updating user: {user_id}")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             user = await db.get(User, user_id)
             if not user:
                 logger.error(f"User not found: {user_id}")
@@ -87,6 +89,7 @@ async def update_user_service(user_id: int, update: UserUpdate):
             await db.refresh(user)
             logger.info(f"User updated: {user_id}")
             return UserOut.model_validate(user)
+            break
     except Exception as e:
         logger.error(f"Error updating user {user_id}: {e}", exc_info=True)
         raise
@@ -95,7 +98,7 @@ async def update_user_service(user_id: int, update: UserUpdate):
 async def delete_user_service(user_id: int):
     logger.info(f"Deleting user: {user_id}")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             user = await db.get(User, user_id)
             if not user:
                 logger.error(f"User not found: {user_id}")
@@ -104,6 +107,7 @@ async def delete_user_service(user_id: int):
             await db.commit()
             logger.info(f"User deleted: {user_id}")
             return None
+            break
     except Exception as e:
         logger.error(f"Error deleting user {user_id}: {e}", exc_info=True)
         raise
@@ -115,12 +119,13 @@ async def delete_user_service(user_id: int):
 async def get_all_articles():
     logger.info("Fetching all articles from database")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             stmt = select(Article).options(selectinload(Article.tags))
             result = await db.execute(stmt)
             articles = result.scalars().all()
             logger.info(f"Fetched {len(articles)} articles")
             return [ArticleOut.model_validate(a) for a in articles]
+            break
     except Exception as e:
         logger.error(f"Error fetching articles: {e}", exc_info=True)
         raise
@@ -129,12 +134,13 @@ async def get_all_articles():
 async def create_article_service(article: ArticleCreate):
     logger.info(f"Creating article: {article.title}")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             new_article = await create_article(
                 db, article.title, article.content, article.summary, article.tag_names
             )
             logger.info(f"Article created: {article.title}")
             return ArticleOut.model_validate(new_article)
+            break
     except Exception as e:
         logger.error(f"Error creating article {article.title}: {e}", exc_info=True)
         raise
@@ -143,7 +149,7 @@ async def create_article_service(article: ArticleCreate):
 async def update_article_service(article_id: int, update: ArticleUpdate):
     logger.info(f"Updating article: {article_id}")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             updated = await update_article(
                 db, article_id, **update.dict(exclude_unset=True)
             )
@@ -152,6 +158,7 @@ async def update_article_service(article_id: int, update: ArticleUpdate):
                 raise HTTPException(status_code=404, detail="Article not found")
             logger.info(f"Article updated: {article_id}")
             return ArticleOut.model_validate(updated)
+            break
     except Exception as e:
         logger.error(f"Error updating article {article_id}: {e}", exc_info=True)
         raise
@@ -160,13 +167,14 @@ async def update_article_service(article_id: int, update: ArticleUpdate):
 async def delete_article_service(article_id: int):
     logger.info(f"Deleting article: {article_id}")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             ok = await delete_article(db, article_id)
             if not ok:
                 logger.error(f"Article not found: {article_id}")
                 raise HTTPException(status_code=404, detail="Article not found")
             logger.info(f"Article deleted: {article_id}")
             return {"detail": "Deleted"}
+            break
     except Exception as e:
         logger.error(f"Error deleting article {article_id}: {e}", exc_info=True)
         raise
@@ -178,11 +186,12 @@ async def delete_article_service(article_id: int):
 async def get_flagged_content():
     logger.info("Fetching flagged content")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             result = await db.execute(select(Article).where(Article.flagged))
             flagged = result.scalars().all()
             logger.info(f"Fetched {len(flagged)} flagged articles")
             return [ArticleOut.model_validate(a) for a in flagged]
+            break
     except Exception as e:
         logger.error(f"Error fetching flagged content: {e}", exc_info=True)
         raise
@@ -191,7 +200,7 @@ async def get_flagged_content():
 async def moderate_article_service(article_id: int, action: str):
     logger.info(f"Moderating article: {article_id} with action: {action}")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             article = await db.get(Article, article_id)
             if not article:
                 logger.error(f"Article not found: {article_id}")
@@ -216,6 +225,7 @@ async def moderate_article_service(article_id: int, action: str):
                 f"Moderation complete for article: {article_id} with action: {action}"
             )
             return ArticleOut.model_validate(article)
+            break
     except Exception as e:
         logger.error(f"Error moderating article {article_id}: {e}", exc_info=True)
         raise
@@ -227,7 +237,7 @@ async def moderate_article_service(article_id: int, action: str):
 async def get_analytics_stats():
     logger.info("Fetching analytics stats")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             user_count = (await db.execute(func.count(User.id))).scalar()
             article_count = (await db.execute(func.count(Article.id))).scalar()
             conv_result = await db.execute(select(Conversation.id))
@@ -244,6 +254,7 @@ async def get_analytics_stats():
                 "articles": article_count,
                 "ai_usage": ai_usage,
             }
+            break
     except Exception as e:
         logger.error(f"Error fetching analytics stats: {e}", exc_info=True)
         raise
@@ -255,7 +266,7 @@ async def get_analytics_stats():
 async def get_system_health():
     logger.info("Checking system health")
     try:
-        async with get_db() as db:
+        async for db in get_db():
             try:
                 user_count = (await db.execute(func.count(User.id))).scalar()
                 status = "healthy"
@@ -268,6 +279,7 @@ async def get_system_health():
                 errors = [traceback.format_exc()]
                 logger.error(f"System health check failed: {details}")
             return {"status": status, "details": details, "errors": errors}
+            break
     except Exception as e:
         logger.error(f"Error checking system health: {e}", exc_info=True)
         raise
