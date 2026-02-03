@@ -34,10 +34,10 @@ async def start_conversation(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    logger.info(f"Start conversation endpoint called for user: {user['sub']}")
+    logger.info(f"Start conversation endpoint called for user: {user.sub}")
     try:
         obj = await services.start_conversation(
-            db, user_id=user["sub"], title=conv.title
+            db, user_id=user.sub, title=conv.title
         )
         logger.info(f"Conversation started for user: {user['sub']}")
         return obj
