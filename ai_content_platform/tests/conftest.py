@@ -1,3 +1,4 @@
+
 from ai_content_platform.app.main import app as fastapi_app
 import httpx
 from ai_content_platform.app.modules.auth.models import Role
@@ -7,11 +8,19 @@ from ai_content_platform.app.main import app
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 import pytest_asyncio
+from alembic import command
+from alembic.config import Config
 import pytest
 import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 
+
+
+@pytest.fixture(scope="session", autouse=True)
+def apply_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
 
 TEST_DB_PATH = "./test.db"
 TEST_DB_URL = f"sqlite+aiosqlite:///{TEST_DB_PATH}"
