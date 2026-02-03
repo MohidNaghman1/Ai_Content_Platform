@@ -22,16 +22,14 @@ router = APIRouter(prefix="/api/notifications", tags=["notifications"])
     "/send",
     status_code=201,
     dependencies=[Depends(require_permission("send_notifications"))],
+    summary="N1: Send Notification",
+    description="""
+    **N1: Send Notification**\n
+    Queue a notification for a user. Publishes an event to the notification system, which will deliver via email, in-app, or both, depending on the `type` and user preferences.\n
+    - **user_id**: ID of the user to send notification to\n    - **message**: Notification message content\n    - **type**: Type of notification (\"email\", \"in_app\", or \"notification\" for both)\n    - **email**: Optional email address (will fetch from DB if not provided)
+    """
 )
 def send_notification(notification: NotificationCreate):
-    """
-    Send a notification by publishing to event stream.
-
-    - **user_id**: ID of the user to send notification to
-    - **message**: Notification message content
-    - **type**: Type of notification ("email", "in_app", or "notification" for both)
-    - **email**: Optional email address (will fetch from DB if not provided)
-    """
     logger.info(
         f"API: Sending notification to user {notification.user_id} of type {notification.type}"
     )
@@ -61,6 +59,12 @@ def send_notification(notification: NotificationCreate):
     "/{user_id}",
     response_model=List[NotificationResponse],
     dependencies=[Depends(require_permission("view_notifications"))],
+    summary="N2: Get User Notifications",
+    description="""
+    **N2: Get User Notifications**\n
+    Retrieve a list of in-app notifications for a specific user. Supports filtering for unread notifications and limiting the number of results.\n
+    - **user_id**: ID of the user\n    - **unread_only**: If true, returns only unread notifications\n    - **limit**: Maximum number of notifications to return (max 100)
+    """
 )
 def get_user_notifications(
     user_id: int,
@@ -94,6 +98,12 @@ def get_user_notifications(
 @router.get(
     "/{user_id}/unread-count",
     dependencies=[Depends(require_permission("view_notifications"))],
+    summary="N3: Get Unread Notification Count",
+    description="""
+    **N3: Get Unread Notification Count**\n
+    Get the count of unread in-app notifications for a user.\n
+    - **user_id**: ID of the user
+    """
 )
 def get_unread_count(user_id: int, db: Session = Depends(get_db)):
     """
@@ -116,6 +126,12 @@ def get_unread_count(user_id: int, db: Session = Depends(get_db)):
 @router.patch(
     "/{notification_id}/read",
     dependencies=[Depends(require_permission("view_notifications"))],
+    summary="N4: Mark Notification as Read",
+    description="""
+    **N4: Mark Notification as Read**\n
+    Mark a specific notification as read for a user.\n
+    - **notification_id**: ID of the notification to mark as read\n    - **user_id**: ID of the user (for authorization)
+    """
 )
 def mark_notification_as_read(
     notification_id: int, request: MarkReadRequest, db: Session = Depends(get_db)
@@ -158,6 +174,12 @@ def mark_notification_as_read(
 @router.patch(
     "/{user_id}/read-all",
     dependencies=[Depends(require_permission("view_notifications"))],
+    summary="N5: Mark All Notifications as Read",
+    description="""
+    **N5: Mark All Notifications as Read**\n
+    Mark all in-app notifications as read for a user.\n
+    - **user_id**: ID of the user
+    """
 )
 def mark_all_notifications_as_read(user_id: int, db: Session = Depends(get_db)):
     """
@@ -186,6 +208,12 @@ def mark_all_notifications_as_read(user_id: int, db: Session = Depends(get_db)):
 @router.delete(
     "/{notification_id}",
     dependencies=[Depends(require_permission("view_notifications"))],
+    summary="N6: Delete Notification",
+    description="""
+    **N6: Delete Notification**\n
+    Delete a specific notification for a user.\n
+    - **notification_id**: ID of the notification to delete\n    - **user_id**: ID of the user (for authorization)
+    """
 )
 def delete_notification(
     notification_id: int,
@@ -228,6 +256,12 @@ def delete_notification(
 @router.get(
     "/{user_id}/preferences",
     dependencies=[Depends(require_permission("view_notifications"))],
+    summary="N7: Get User Notification Preferences",
+    description="""
+    **N7: Get User Notification Preferences**\n
+    Retrieve the notification channel preferences (email/in-app) for a user.\n
+    - **user_id**: ID of the user
+    """
 )
 def get_user_notification_preferences(user_id: int, db: Session = Depends(get_db)):
     """
@@ -251,11 +285,15 @@ def get_user_notification_preferences(user_id: int, db: Session = Depends(get_db
 # ========== Health Check ==========
 
 
-@router.get("/health")
+@router.get(
+    "/health",
+    summary="N8: Notification Service Health Check",
+    description="""
+    **N8: Notification Service Health Check**\n
+    Check if the notification service is running and healthy.
+    """
+)
 def health_check():
-    """
-    Health check endpoint for notification service.
-    """
     logger.info("API: Health check called for notifications service")
     return {
         "status": "healthy",
