@@ -56,6 +56,12 @@ async def get_user_by_username(db: AsyncSession, username: str):
         logger.error(f"Error fetching user by username {username}: {e}", exc_info=True)
         return None
 
+async def get_user_by_id(db: AsyncSession, user_id: int):
+    """Fetch a user by id from the DB, eagerly loading roles."""
+    result = await db.execute(
+        select(User).options(selectinload(User.roles)).where(User.id == user_id)
+    )
+    return result.scalars().first()
 
 async def create_user(db: AsyncSession, user_data):
     """
@@ -111,7 +117,8 @@ async def create_user(db: AsyncSession, user_data):
         )
 
         await db.commit()
-        await db.refresh(user)
+        # Re-fetch user with roles eagerly loaded
+        user_with_roles = await get_user_by_id(db, user.id)
 
         # Trigger notification event (example: welcome message)
         try:
@@ -126,7 +133,7 @@ async def create_user(db: AsyncSession, user_data):
                 f"Error publishing USER_REGISTERED event for user {user.id}: {e}",
                 exc_info=True,
             )
-        return user
+        return user_with_roles
     except Exception as e:
         await db.rollback()
         logger.error(f"Error creating user: {e}", exc_info=True)
