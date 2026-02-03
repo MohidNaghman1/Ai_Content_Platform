@@ -40,7 +40,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         # Optionally, check for existing email here as well
         user = await create_user(db, user_in)
         logger.info(f"User registered: {user_in.username}")
-        return user
+        return UserOut.model_validate(user)
     except Exception as e:
         logger.error(f"Error in register endpoint: {e}", exc_info=True)
         raise
