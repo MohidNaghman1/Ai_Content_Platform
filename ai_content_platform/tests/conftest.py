@@ -23,10 +23,7 @@ ALEMBIC_INI = BASE_DIR / "alembic.ini"
 def apply_migrations():
     alembic_cfg = Config(str(ALEMBIC_INI))
 
-    alembic_cfg.set_main_option(
-        "sqlalchemy.url",
-        "sqlite:///./test.db"
-    )
+    alembic_cfg.set_main_option("sqlalchemy.url", "sqlite:///./test.db")
 
     command.upgrade(alembic_cfg, "head")
 
