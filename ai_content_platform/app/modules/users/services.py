@@ -56,12 +56,14 @@ async def get_user_by_username(db: AsyncSession, username: str):
         logger.error(f"Error fetching user by username {username}: {e}", exc_info=True)
         return None
 
+
 async def get_user_by_id(db: AsyncSession, user_id: int):
     """Fetch a user by id from the DB, eagerly loading roles."""
     result = await db.execute(
         select(User).options(selectinload(User.roles)).where(User.id == user_id)
     )
     return result.scalars().first()
+
 
 async def create_user(db: AsyncSession, user_data):
     """
