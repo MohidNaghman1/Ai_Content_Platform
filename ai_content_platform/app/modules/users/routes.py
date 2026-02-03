@@ -1,3 +1,4 @@
+
 """
 User API routes: registration, profile, update, avatar upload.
 All endpoints use async SQLAlchemy and Pydantic schemas.
@@ -51,7 +52,6 @@ async def list_users_endpoint(db: AsyncSession = Depends(get_db)):
 
 # Get current user's profile
 
-
 @user_router.get("/me", response_model=UserOut)
 async def get_profile(
     current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
@@ -73,9 +73,22 @@ async def get_profile(
         raise HTTPException(500, "Failed to fetch user profile")
 
 
+# Debug endpoint: Get current user's roles and permissions
+@user_router.get("/me/roles-permissions")
+async def get_my_roles_permissions(current_user=Depends(get_current_user)):
+    roles = [r.name for r in getattr(current_user, "roles", [])]
+    permissions = set()
+    for role in getattr(current_user, "roles", []):
+        for perm in getattr(role, "permissions", []):
+            permissions.add(perm.name)
+    return {
+        "username": getattr(current_user, "username", None),
+        "roles": roles,
+        "permissions": list(permissions),
+        "role_field": getattr(current_user, "role", None),
+    }
+
 # Update current user's profile
-
-
 @user_router.put("/me", response_model=UserOut)
 async def update_profile(
     update: UserUpdate,
