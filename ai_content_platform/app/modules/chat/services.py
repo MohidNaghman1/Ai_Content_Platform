@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from ai_content_platform.app.modules.chat.models import (
     Conversation,
     Message,
@@ -61,9 +62,12 @@ async def get_conversation(
     logger.info(f"Fetching conversation {conversation_id}")
     try:
         result = await db.execute(
-            select(Conversation).where(Conversation.id == conversation_id)
+            select(Conversation)
+            .options(selectinload(Conversation.messages))
+            .where(Conversation.id == conversation_id)
         )
-        return result.scalars().first()
+        conversation = result.scalar_one_or_none()
+        return conversation
     except Exception as e:
         logger.error(
             f"Error fetching conversation {conversation_id}: {e}", exc_info=True
