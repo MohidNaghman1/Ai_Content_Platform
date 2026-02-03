@@ -190,7 +190,11 @@ async def get_flagged_content():
     try:
         async for db in get_db():
             # Eager-load tags for flagged articles if needed
-            result = await db.execute(select(Article).options(selectinload(Article.tags)).where(Article.flagged))
+            result = await db.execute(
+                select(Article)
+                .options(selectinload(Article.tags))
+                .where(Article.flagged)
+            )
             flagged = result.scalars().all()
             logger.info(f"Fetched {len(flagged)} flagged articles")
             return [ArticleOut.model_validate(a) for a in flagged]
@@ -205,7 +209,11 @@ async def moderate_article_service(article_id: int, action: str):
     try:
         async for db in get_db():
             # Eager-load tags for moderation if needed
-            result = await db.execute(select(Article).options(selectinload(Article.tags)).where(Article.id == article_id))
+            result = await db.execute(
+                select(Article)
+                .options(selectinload(Article.tags))
+                .where(Article.id == article_id)
+            )
             article = result.scalar_one_or_none()
             if not article:
                 logger.error(f"Article not found: {article_id}")
