@@ -33,7 +33,6 @@ class ConversationOut(ConversationBase):
     created_at: datetime
     messages: List[MessageOut] = Field(default_factory=list)
 
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -43,7 +42,10 @@ class TokenUsageOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 # Manual ORM → DTO conversion to avoid lazy loading and async bugs
+
+
 def conversation_to_out(conv: Conversation) -> "ConversationOut":
     return ConversationOut(
         id=conv.id,
