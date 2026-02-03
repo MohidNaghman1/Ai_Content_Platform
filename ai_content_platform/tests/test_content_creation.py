@@ -174,7 +174,11 @@ async def test_create_article_with_new_and_existing_tags(client):
         )
         user = result.scalars().first()
         print("User roles:", [r.name for r in user.roles], flush=True)
-        print("User permissions:", [p.name for r in user.roles for p in r.permissions], flush=True)
+        print(
+            "User permissions:",
+            [p.name for r in user.roles for p in r.permissions],
+            flush=True,
+        )
 
     # Helper to robustly get JSON or print error
     def get_json_or_debug(response):
@@ -227,7 +231,12 @@ async def test_create_article_with_new_and_existing_tags(client):
         timeout=10,
     )
     if response2.status_code != 200:
-        print("Create 2nd article failed:", response2.status_code, response2.text, flush=True)
+        print(
+            "Create 2nd article failed:",
+            response2.status_code,
+            response2.text,
+            flush=True,
+        )
     assert response2.status_code == 200
     data2 = get_json_or_debug(response2)
     assert (
@@ -237,9 +246,16 @@ async def test_create_article_with_new_and_existing_tags(client):
     assert set([t["name"] for t in data2["tags"]]) == {"ai", "newtag"}
 
     # List all tags
-    tags_response = await asyncio.wait_for(client.get("/content/tags/", headers=headers), timeout=10)
+    tags_response = await asyncio.wait_for(
+        client.get("/content/tags/", headers=headers), timeout=10
+    )
     if tags_response.status_code != 200:
-        print("List tags failed:", tags_response.status_code, tags_response.text, flush=True)
+        print(
+            "List tags failed:",
+            tags_response.status_code,
+            tags_response.text,
+            flush=True,
+        )
     assert tags_response.status_code == 200
     tags = get_json_or_debug(tags_response)
     assert (
@@ -250,7 +266,9 @@ async def test_create_article_with_new_and_existing_tags(client):
         assert name in tag_names
 
     # List all articles
-    articles_response = await asyncio.wait_for(client.get("/content/articles/", headers=headers), timeout=10)
+    articles_response = await asyncio.wait_for(
+        client.get("/content/articles/", headers=headers), timeout=10
+    )
     if articles_response.status_code != 200:
         print(
             "List articles failed:",
@@ -280,7 +298,10 @@ async def test_create_article_with_new_and_existing_tags(client):
     )
     if update_response.status_code != 200:
         print(
-            "Update article failed:", update_response.status_code, update_response.text, flush=True
+            "Update article failed:",
+            update_response.status_code,
+            update_response.text,
+            flush=True,
         )
     assert update_response.status_code == 200
     updated = get_json_or_debug(update_response)
@@ -306,7 +327,12 @@ async def test_create_article_with_new_and_existing_tags(client):
         timeout=10,
     )
     if ai_gen_response.status_code != 200:
-        print("AI generate failed:", ai_gen_response.status_code, ai_gen_response.text, flush=True)
+        print(
+            "AI generate failed:",
+            ai_gen_response.status_code,
+            ai_gen_response.text,
+            flush=True,
+        )
     assert ai_gen_response.status_code == 200
     ai_data = get_json_or_debug(ai_gen_response)
     assert (
@@ -321,13 +347,16 @@ async def test_create_article_with_new_and_existing_tags(client):
     # Test AI-powered summarization (protected endpoint)
     article_id = ai_data["id"]
     ai_sum_response = await asyncio.wait_for(
-        client.post(
-            f"/content/articles/{article_id}/summarize/", headers=headers
-        ),
+        client.post(f"/content/articles/{article_id}/summarize/", headers=headers),
         timeout=10,
     )
     if ai_sum_response.status_code != 200:
-        print("AI summarize failed:", ai_sum_response.status_code, ai_sum_response.text, flush=True)
+        print(
+            "AI summarize failed:",
+            ai_sum_response.status_code,
+            ai_sum_response.text,
+            flush=True,
+        )
     assert ai_sum_response.status_code == 200
     ai_sum_data = get_json_or_debug(ai_sum_response)
     assert (
@@ -338,13 +367,16 @@ async def test_create_article_with_new_and_existing_tags(client):
 
     # Delete article
     del_response = await asyncio.wait_for(
-        client.delete(
-            f"/content/articles/{article_id}", headers=headers
-        ),
+        client.delete(f"/content/articles/{article_id}", headers=headers),
         timeout=10,
     )
     if del_response.status_code != 200:
-        print("Delete article failed:", del_response.status_code, del_response.text, flush=True)
+        print(
+            "Delete article failed:",
+            del_response.status_code,
+            del_response.text,
+            flush=True,
+        )
     assert del_response.status_code == 200
     del_data = get_json_or_debug(del_response)
     assert (
@@ -353,7 +385,14 @@ async def test_create_article_with_new_and_existing_tags(client):
     assert del_data["detail"] == "Deleted"
 
     # Try to get deleted article
-    get_deleted = await asyncio.wait_for(client.get(f"/content/articles/{article_id}", headers=headers), timeout=10)
+    get_deleted = await asyncio.wait_for(
+        client.get(f"/content/articles/{article_id}", headers=headers), timeout=10
+    )
     if get_deleted.status_code != 404:
-        print("Get deleted article failed:", get_deleted.status_code, get_deleted.text, flush=True)
+        print(
+            "Get deleted article failed:",
+            get_deleted.status_code,
+            get_deleted.text,
+            flush=True,
+        )
     assert get_deleted.status_code == 404
