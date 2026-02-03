@@ -24,6 +24,13 @@ async def start_conversation(
         db.add(conv)
         await db.commit()
         await db.refresh(conv)
+        # Eagerly reload with relationships
+        result = await db.execute(
+            select(Conversation)
+            .options(selectinload(Conversation.messages))
+            .where(Conversation.id == conv.id)
+        )
+        conv = result.scalar_one()
         logger.info(
             f"Conversation started for user: {user_id}, conversation_id: {conv.id}"
         )

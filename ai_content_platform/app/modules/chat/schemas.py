@@ -1,5 +1,5 @@
 from ai_content_platform.app.modules.chat.models import Conversation, Message
-
+from sqlalchemy.orm.attributes import instance_state
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from datetime import datetime
@@ -46,7 +46,12 @@ class TokenUsageOut(BaseModel):
 # Manual ORM → DTO conversion to avoid lazy loading and async bugs
 
 
+
 def conversation_to_out(conv: Conversation) -> "ConversationOut":
+    # Check if messages was actually loaded; don't guess
+    state = instance_state(conv)
+    messages = conv.messages if "messages" in state.dict else []
+
     return ConversationOut(
         id=conv.id,
         title=conv.title,
@@ -58,6 +63,6 @@ def conversation_to_out(conv: Conversation) -> "ConversationOut":
                 content=m.content,
                 created_at=m.created_at,
             )
-            for m in getattr(conv, "messages", [])
+            for m in messages
         ],
     )
