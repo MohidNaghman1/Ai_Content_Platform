@@ -34,10 +34,10 @@ async def start_conversation(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    logger.info(f"Start conversation endpoint called for user: {user.sub}")
+    logger.info(f"Start conversation endpoint called for user: {user.username}")
     try:
-        obj = await services.start_conversation(db, user_id=user.sub, title=conv.title)
-        logger.info(f"Conversation started for user: {user['sub']}")
+        obj = await services.start_conversation(db, user_id=user.id, title=conv.title)
+        logger.info(f"Conversation started for user: {user.username}, conversation_id: {obj.id}")
         return obj
     except Exception as e:
         logger.error(f"Error in start_conversation: {e}", exc_info=True)
@@ -52,9 +52,9 @@ async def start_conversation(
 async def list_conversations(
     db: AsyncSession = Depends(get_db), user=Depends(get_current_user)
 ):
-    logger.info(f"List conversations endpoint called for user: {user['sub']}")
+    logger.info(f"List conversations endpoint called for user: {user.username}")
     try:
-        return await services.get_user_conversations(db, user_id=user["sub"])
+        return await services.get_user_conversations(db, user_id=user.id)
     except Exception as e:
         logger.error(f"Error in list_conversations: {e}", exc_info=True)
         raise
@@ -71,13 +71,13 @@ async def get_conversation(
     user=Depends(get_current_user),
 ):
     logger.info(
-        f"Get conversation endpoint called for user: {user['sub']}, conversation_id: {conversation_id}"
+        f"Get conversation endpoint called for user: {user.id}, conversation_id: {conversation_id}"
     )
     try:
         conv = await services.get_conversation(db, conversation_id)
-        if not conv or conv.user_id != user["sub"]:
+        if not conv or conv.user_id != user.id:
             logger.warning(
-                f"Conversation not found: {conversation_id} for user: {user['sub']}"
+                f"Conversation not found: {conversation_id} for user: {user.id}"
             )
             raise HTTPException(404, "Conversation not found")
         return conv
@@ -103,13 +103,13 @@ async def stream_message(
     retrieval_keywords: str = "",
 ):
     logger.info(
-        f"Stream message endpoint called for user: {user['sub']}, conversation_id: {conversation_id}"
+        f"Stream message endpoint called for user: {user.id}, conversation_id: {conversation_id}"
     )
     try:
         conv = await services.get_conversation(db, conversation_id)
-        if not conv or conv.user_id != user["sub"]:
+        if not conv or conv.user_id != user.id:
             logger.warning(
-                f"Conversation not found: {conversation_id} for user: {user['sub']}"
+                f"Conversation not found: {conversation_id} for user: {user.id}"
             )
             raise HTTPException(404, "Conversation not found")
         # Add user message
@@ -172,7 +172,7 @@ async def stream_message(
                     await services.track_token_usage(
                         db_bg,
                         conversation_id,
-                        user["sub"],
+                        user.id,
                         tokens=len(msg.content) + len(ai_stream_accum.full_response),
                     )
                     # Only summarize if response is complete
@@ -205,13 +205,13 @@ async def get_messages(
     user=Depends(get_current_user),
 ):
     logger.info(
-        f"Get messages endpoint called for user: {user['sub']}, conversation_id: {conversation_id}"
+        f"Get messages endpoint called for user: {user.id}, conversation_id: {conversation_id}"
     )
     try:
         conv = await services.get_conversation(db, conversation_id)
-        if not conv or conv.user_id != user["sub"]:
+        if not conv or conv.user_id != user.id:
             logger.warning(
-                f"Conversation not found: {conversation_id} for user: {user['sub']}"
+                f"Conversation not found: {conversation_id} for user: {user.id}"
             )
             raise HTTPException(404, "Conversation not found")
         return await services.get_conversation_messages(db, conversation_id)
@@ -231,13 +231,13 @@ async def get_token_usage(
     user=Depends(get_current_user),
 ):
     logger.info(
-        f"Get token usage endpoint called for user: {user['sub']}, conversation_id: {conversation_id}"
+        f"Get token usage endpoint called for user: {user.id}, conversation_id: {conversation_id}"
     )
     try:
         conv = await services.get_conversation(db, conversation_id)
-        if not conv or conv.user_id != user["sub"]:
+        if not conv or conv.user_id != user.id:
             logger.warning(
-                f"Conversation not found: {conversation_id} for user: {user['sub']}"
+                f"Conversation not found: {conversation_id} for user: {user.id}"
             )
             raise HTTPException(404, "Conversation not found")
         usage_records = await services.get_token_usage(db, conversation_id)
