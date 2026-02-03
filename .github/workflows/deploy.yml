@@ -11,6 +11,7 @@ permissions:
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       # Use SQLite for CI tests
       DATABASE_URL: "sqlite+aiosqlite:///./test.db"
@@ -70,7 +71,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest ai_content_platform/tests --maxfail=1 --disable-warnings --exitfirst
+          pytest ai_content_platform/tests --maxfail=1 --tb=short --disable-warnings --exitfirst
 
       - name: Run flake8 (warnings only for code quality)
         run: |

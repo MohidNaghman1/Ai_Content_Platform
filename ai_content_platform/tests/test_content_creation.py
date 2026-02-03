@@ -5,10 +5,9 @@ from ai_content_platform.app.database import Base
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from ai_content_platform.app.modules.users.models import User
-from ai_content_platform.app.main import app as fastapi_app
 from ai_content_platform.tests.conftest import AsyncTestingSessionLocal
 import pytest
-import httpx
+import asyncio
 from ai_content_platform.app.modules.content import gemini_service
 
 
@@ -35,14 +34,17 @@ def mock_gemini(monkeypatch):
 @pytest.mark.asyncio
 async def test_create_article_with_new_and_existing_tags(client):
     # Register user
-    await client.post(
-        "/auth/register",
-        json={
-            "username": "alice_test",
-            "email": "alice@example.com",
-            "password": "string",
-            "role": "admin",
-        },
+    await asyncio.wait_for(
+        client.post(
+            "/auth/register",
+            json={
+                "username": "alice_test",
+                "email": "alice@example.com",
+                "password": "string",
+                "role": "admin",
+            },
+        ),
+        timeout=10,
     )
 
     from ai_content_platform.app.modules.auth.models import Permission, role_permissions
@@ -152,8 +154,11 @@ async def test_create_article_with_new_and_existing_tags(client):
     await ensure_admin_and_permission()
 
     # Now login
-    login_response = await client.post(
-        "/auth/login", data={"username": "alice_test", "password": "string"}
+    login_response = await asyncio.wait_for(
+        client.post(
+            "/auth/login", data={"username": "alice_test", "password": "string"}
+        ),
+        timeout=10,
     )
     assert login_response.status_code == 200
     tokens = login_response.json()
@@ -168,8 +173,8 @@ async def test_create_article_with_new_and_existing_tags(client):
             .options(selectinload(User.roles).selectinload(Role.permissions))
         )
         user = result.scalars().first()
-        print("User roles:", [r.name for r in user.roles])
-        print("User permissions:", [p.name for r in user.roles for p in r.permissions])
+        print("User roles:", [r.name for r in user.roles], flush=True)
+        print("User permissions:", [p.name for r in user.roles for p in r.permissions], flush=True)
 
     # Helper to robustly get JSON or print error
     def get_json_or_debug(response):
@@ -184,18 +189,21 @@ async def test_create_article_with_new_and_existing_tags(client):
             return None
 
     # Create an article with new tags
-    response = await client.post(
-        "/content/articles/",
-        json={
-            "title": "AI Content Test",
-            "content": "This is a test article about AI.",
-            "summary": "Test summary.",
-            "tag_names": ["AI", "FastAPI", "Python"],
-        },
-        headers=headers,
+    response = await asyncio.wait_for(
+        client.post(
+            "/content/articles/",
+            json={
+                "title": "AI Content Test",
+                "content": "This is a test article about AI.",
+                "summary": "Test summary.",
+                "tag_names": ["AI", "FastAPI", "Python"],
+            },
+            headers=headers,
+        ),
+        timeout=10,
     )
     if response.status_code != 200:
-        print("Create article failed:", response.status_code, response.text)
+        print("Create article failed:", response.status_code, response.text, flush=True)
     assert response.status_code == 200
     data = get_json_or_debug(response)
     assert (
@@ -205,18 +213,21 @@ async def test_create_article_with_new_and_existing_tags(client):
     assert set([t["name"] for t in data["tags"]]) == {"ai", "fastapi", "python"}
 
     # Create another article with some existing and some new tags
-    response2 = await client.post(
-        "/content/articles/",
-        json={
-            "title": "Second Article",
-            "content": "Another article.",
-            "summary": "Second summary.",
-            "tag_names": ["AI", "NewTag"],
-        },
-        headers=headers,
+    response2 = await asyncio.wait_for(
+        client.post(
+            "/content/articles/",
+            json={
+                "title": "Second Article",
+                "content": "Another article.",
+                "summary": "Second summary.",
+                "tag_names": ["AI", "NewTag"],
+            },
+            headers=headers,
+        ),
+        timeout=10,
     )
     if response2.status_code != 200:
-        print("Create 2nd article failed:", response2.status_code, response2.text)
+        print("Create 2nd article failed:", response2.status_code, response2.text, flush=True)
     assert response2.status_code == 200
     data2 = get_json_or_debug(response2)
     assert (
@@ -226,9 +237,9 @@ async def test_create_article_with_new_and_existing_tags(client):
     assert set([t["name"] for t in data2["tags"]]) == {"ai", "newtag"}
 
     # List all tags
-    tags_response = await client.get("/content/tags/", headers=headers)
+    tags_response = await asyncio.wait_for(client.get("/content/tags/", headers=headers), timeout=10)
     if tags_response.status_code != 200:
-        print("List tags failed:", tags_response.status_code, tags_response.text)
+        print("List tags failed:", tags_response.status_code, tags_response.text, flush=True)
     assert tags_response.status_code == 200
     tags = get_json_or_debug(tags_response)
     assert (
@@ -239,12 +250,13 @@ async def test_create_article_with_new_and_existing_tags(client):
         assert name in tag_names
 
     # List all articles
-    articles_response = await client.get("/content/articles/", headers=headers)
+    articles_response = await asyncio.wait_for(client.get("/content/articles/", headers=headers), timeout=10)
     if articles_response.status_code != 200:
         print(
             "List articles failed:",
             articles_response.status_code,
             articles_response.text,
+            flush=True,
         )
     assert articles_response.status_code == 200
     articles = get_json_or_debug(articles_response)
@@ -258,14 +270,17 @@ async def test_create_article_with_new_and_existing_tags(client):
 
     # Update article to add more tags
     article_id = data["id"]
-    update_response = await client.put(
-        f"/content/articles/{article_id}",
-        json={"tag_names": ["AI", "FastAPI", "ExtraTag"]},
-        headers=headers,
+    update_response = await asyncio.wait_for(
+        client.put(
+            f"/content/articles/{article_id}",
+            json={"tag_names": ["AI", "FastAPI", "ExtraTag"]},
+            headers=headers,
+        ),
+        timeout=10,
     )
     if update_response.status_code != 200:
         print(
-            "Update article failed:", update_response.status_code, update_response.text
+            "Update article failed:", update_response.status_code, update_response.text, flush=True
         )
     assert update_response.status_code == 200
     updated = get_json_or_debug(update_response)
@@ -277,18 +292,21 @@ async def test_create_article_with_new_and_existing_tags(client):
         assert name in updated_tag_names
 
     # Test AI-powered article generation (protected endpoint)
-    ai_gen_response = await client.post(
-        "/content/articles/generate/",
-        json={
-            "title": "AI Generated Article",
-            "content": "Write about the impact of AI on society.",
-            "summary": None,
-            "tag_names": ["AI", "Society"],
-        },
-        headers=headers,
+    ai_gen_response = await asyncio.wait_for(
+        client.post(
+            "/content/articles/generate/",
+            json={
+                "title": "AI Generated Article",
+                "content": "Write about the impact of AI on society.",
+                "summary": None,
+                "tag_names": ["AI", "Society"],
+            },
+            headers=headers,
+        ),
+        timeout=10,
     )
     if ai_gen_response.status_code != 200:
-        print("AI generate failed:", ai_gen_response.status_code, ai_gen_response.text)
+        print("AI generate failed:", ai_gen_response.status_code, ai_gen_response.text, flush=True)
     assert ai_gen_response.status_code == 200
     ai_data = get_json_or_debug(ai_gen_response)
     assert (
@@ -302,11 +320,14 @@ async def test_create_article_with_new_and_existing_tags(client):
 
     # Test AI-powered summarization (protected endpoint)
     article_id = ai_data["id"]
-    ai_sum_response = await client.post(
-        f"/content/articles/{article_id}/summarize/", headers=headers
+    ai_sum_response = await asyncio.wait_for(
+        client.post(
+            f"/content/articles/{article_id}/summarize/", headers=headers
+        ),
+        timeout=10,
     )
     if ai_sum_response.status_code != 200:
-        print("AI summarize failed:", ai_sum_response.status_code, ai_sum_response.text)
+        print("AI summarize failed:", ai_sum_response.status_code, ai_sum_response.text, flush=True)
     assert ai_sum_response.status_code == 200
     ai_sum_data = get_json_or_debug(ai_sum_response)
     assert (
@@ -316,11 +337,14 @@ async def test_create_article_with_new_and_existing_tags(client):
     assert len(ai_sum_data["summary"]) > 0
 
     # Delete article
-    del_response = await client.delete(
-        f"/content/articles/{article_id}", headers=headers
+    del_response = await asyncio.wait_for(
+        client.delete(
+            f"/content/articles/{article_id}", headers=headers
+        ),
+        timeout=10,
     )
     if del_response.status_code != 200:
-        print("Delete article failed:", del_response.status_code, del_response.text)
+        print("Delete article failed:", del_response.status_code, del_response.text, flush=True)
     assert del_response.status_code == 200
     del_data = get_json_or_debug(del_response)
     assert (
@@ -329,7 +353,7 @@ async def test_create_article_with_new_and_existing_tags(client):
     assert del_data["detail"] == "Deleted"
 
     # Try to get deleted article
-    get_deleted = await client.get(f"/content/articles/{article_id}", headers=headers)
+    get_deleted = await asyncio.wait_for(client.get(f"/content/articles/{article_id}", headers=headers), timeout=10)
     if get_deleted.status_code != 404:
-        print("Get deleted article failed:", get_deleted.status_code, get_deleted.text)
+        print("Get deleted article failed:", get_deleted.status_code, get_deleted.text, flush=True)
     assert get_deleted.status_code == 404
