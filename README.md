@@ -1,6 +1,5 @@
 # AI Content Platform
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-00a393.svg)](https://fastapi.tiangolo.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
@@ -14,6 +13,7 @@
 AI Content Platform is a sophisticated backend system demonstrating modern software architecture patterns and AI integration. Built for scalability and maintainability, it showcases modular design, event-driven architecture, and production-grade deployment practices.
 
 **Key Highlights:**
+
 - 🤖 AI-powered content generation and summarization using Google Gemini
 - 💬 Intelligent chat assistant with conversation memory
 - 🔐 Enterprise-grade authentication with JWT and OAuth2
@@ -22,8 +22,8 @@ AI Content Platform is a sophisticated backend system demonstrating modern softw
 - 🐳 Fully containerized with Docker
 - 🚀 Production-ready deployment configurations
 
-**Live Demo**: [Your Render/Railway URL]  
-**API Documentation**: [Your URL]/docs  
+**Live Demo**: [https://ai-content-platform-k4b9.onrender.com](https://ai-content-platform-k4b9.onrender.com)  
+**API Documentation**: [https://ai-content-platform-k4b9.onrender.com/docs](https://ai-content-platform-k4b9.onrender.com/docs)  
 **Video Walkthrough**: [Your YouTube/Loom Link]
 
 ## 📋 Table of Contents
@@ -44,6 +44,7 @@ AI Content Platform is a sophisticated backend system demonstrating modern softw
 ## ✨ Features
 
 ### 🔐 User Management Module
+
 - **JWT-based Authentication**: Secure token-based authentication with refresh tokens
 - **OAuth2 Compliance**: Industry-standard authorization framework
 - **Role-Based Access Control (RBAC)**: Three-tier permission system (Admin, Creator, Viewer)
@@ -52,6 +53,7 @@ AI Content Platform is a sophisticated backend system demonstrating modern softw
 - **Session Management**: Token blacklisting and concurrent session handling
 
 ### 📝 Content Module
+
 - **Full CRUD Operations**: Create, read, update, and delete articles
 - **AI Content Generation**: Generate high-quality content using Gemini AI
 - **Intelligent Summarization**: Automatic summarization of long-form content
@@ -62,6 +64,7 @@ AI Content Platform is a sophisticated backend system demonstrating modern softw
 - **Rich Text Support**: Markdown and HTML content
 
 ### 💬 AI Chat Module
+
 - **Personal AI Assistant**: Dedicated assistant for each user
 - **Persistent Conversations**: Full conversation history storage
 - **Streaming Responses**: Real-time response delivery
@@ -72,6 +75,7 @@ AI Content Platform is a sophisticated backend system demonstrating modern softw
 - **Export Capabilities**: Download conversation history
 
 ### 🔔 Notification System
+
 - **Event-Driven Architecture**: Redis-based message queue
 - **Email Notifications**: SMTP integration with templates
 - **In-App Notifications**: Real-time notification center
@@ -82,10 +86,11 @@ AI Content Platform is a sophisticated backend system demonstrating modern softw
 - **Priority Queue**: Urgent vs. normal notification routing
 
 ### 📊 Admin Dashboard
+
 - **User Management**: Complete CRUD operations for users
 - **Role Assignment**: Dynamic role and permission management
 - **Content Moderation**: AI-assisted content review
-- **Analytics Dashboard**: 
+- **Analytics Dashboard**:
   - User growth metrics
   - Content creation trends
   - AI usage statistics
@@ -155,37 +160,40 @@ AI Content Platform is a sophisticated backend system demonstrating modern softw
 ## 🛠️ Tech Stack
 
 ### Core Framework
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **FastAPI** | 0.104+ | High-performance async web framework |
-| **Python** | 3.11+ | Primary programming language |
-| **Pydantic** | 2.0+ | Data validation and settings management |
-| **Uvicorn** | 0.24+ | ASGI server implementation |
+
+| Technology   | Version | Purpose                                 |
+| ------------ | ------- | --------------------------------------- |
+| **FastAPI**  | 0.104+  | High-performance async web framework    |
+| **Python**   | 3.11+   | Primary programming language            |
+| **Pydantic** | 2.0+    | Data validation and settings management |
+| **Uvicorn**  | 0.24+   | ASGI server implementation              |
 
 ### Database & Caching
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **PostgreSQL** | 15+ | Primary relational database |
-| **SQLAlchemy** | 2.0+ | ORM and database toolkit |
-| **Alembic** | 1.12+ | Database migration tool |
-| **Redis** | 7+ | Caching and message queue |
+
+| Technology     | Version | Purpose                     |
+| -------------- | ------- | --------------------------- |
+| **PostgreSQL** | 15+     | Primary relational database |
+| **SQLAlchemy** | 2.0+    | ORM and database toolkit    |
+| **Alembic**    | 1.12+   | Database migration tool     |
+| **Redis**      | 7+      | Caching and message queue   |
 
 ### AI & External Services
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Google Gemini** | Latest | AI content generation and chat |
-| **python-jose** | 3.3+ | JWT token handling |
-| **passlib** | 1.7+ | Password hashing |
-| **aiosmtplib** | 3.0+ | Async email sending |
+
+| Technology        | Version | Purpose                        |
+| ----------------- | ------- | ------------------------------ |
+| **Google Gemini** | Latest  | AI content generation and chat |
+| **python-jose**   | 3.3+    | JWT token handling             |
+| **passlib**       | 1.7+    | Password hashing               |
+| **aiosmtplib**    | 3.0+    | Async email sending            |
 
 ### DevOps & Deployment
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Docker** | 24+ | Containerization |
-| **Docker Compose** | 2.0+ | Multi-container orchestration |
-| **GitHub Actions** | - | CI/CD pipeline |
-| **Render/Railway** | - | Cloud deployment platform |
 
+| Technology         | Version | Purpose                       |
+| ------------------ | ------- | ----------------------------- |
+| **Docker**         | 24+     | Containerization              |
+| **Docker Compose** | 2.0+    | Multi-container orchestration |
+| **GitHub Actions** | -       | CI/CD pipeline                |
+| **Render/Railway** | -       | Cloud deployment platform     |
 
 ## 📁 Project Structure
 
@@ -318,18 +326,21 @@ Before you begin, ensure you have the following installed:
 ### Quick Start with Docker (Recommended)
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/ai-content-platform.git
    cd ai-content-platform
    ```
 
 2. **Configure environment**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration (see Configuration section)
    ```
 
 3. **Start all services**
+
    ```bash
    docker-compose up --build
    ```
@@ -348,12 +359,14 @@ Before you begin, ensure you have the following installed:
 ### Local Development Setup (Without Docker)
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/ai-content-platform.git
    cd ai-content-platform
    ```
 
 2. **Create and activate virtual environment**
+
    ```bash
    # Windows
    python -m venv venv
@@ -365,6 +378,7 @@ Before you begin, ensure you have the following installed:
    ```
 
 3. **Install dependencies**
+
    ```bash
    pip install --upgrade pip
    pip install -r requirements.txt
@@ -372,6 +386,7 @@ Before you begin, ensure you have the following installed:
    ```
 
 4. **Set up PostgreSQL database**
+
    ```bash
    # Create database
    createdb ai_content_platform
@@ -383,38 +398,45 @@ Before you begin, ensure you have the following installed:
    ```
 
 5. **Set up Redis**
+
    ```bash
    # Start Redis server (varies by OS)
    redis-server
    ```
 
 6. **Configure environment**
+
    ```bash
    cp .env.example .env
    # Edit .env with your database and API credentials
    ```
 
 7. **Run database migrations**
+
    ```bash
    alembic upgrade head
    ```
 
 8. **Seed the database** (optional)
+
    ```bash
    python scripts/seed_db.py
    ```
 
 9. **Create admin user**
+
    ```bash
    python scripts/create_admin.py
    ```
 
 10. **Start the application**
+
     ```bash
     uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
     ```
 
 11. **Start the background worker** (in a new terminal)
+
     ```bash
     python app/worker.py
     ```
@@ -488,8 +510,10 @@ Once the application is running, visit:
 All protected endpoints require a JWT token in the Authorization header:
 
 ```
+
 Authorization: Bearer <your_access_token>
-```
+
+````
 
 ### Quick API Reference
 
@@ -502,7 +526,7 @@ POST   /api/v1/auth/refresh           # Refresh access token
 POST   /api/v1/auth/logout            # Logout (invalidate token)
 GET    /api/v1/auth/me                # Get current user
 PUT    /api/v1/auth/change-password   # Change password
-```
+````
 
 #### User Endpoints
 
@@ -562,7 +586,6 @@ GET    /api/v1/admin/logs             # System logs
 ```
 
 For detailed request/response schemas, see [API.md](docs/API.md).
-
 
 ## 🚢 Deployment
 
@@ -685,6 +708,7 @@ GET /metrics
 ```
 
 Includes:
+
 - Request count and latency
 - Database connection pool stats
 - Redis connection stats
@@ -698,16 +722,19 @@ We welcome contributions! Please follow these steps:
 ### Development Workflow
 
 1. **Fork the repository**
+
    ```bash
    gh repo fork yourusername/ai-content-platform
    ```
 
 2. **Create a feature branch**
+
    ```bash
    git checkout -b feature/amazing-feature
    ```
 
 3. **Install dev dependencies**
+
    ```bash
    pip install -r requirements-dev.txt
    pre-commit install
@@ -720,26 +747,28 @@ We welcome contributions! Please follow these steps:
    - Update documentation
 
 5. **Run tests and linting**
+
    ```bash
    # Format code
    black app/ tests/
-   
+
    # Lint code
    flake8 app/ tests/
-   
+
    # Type checking
    mypy app/
-   
+
    # Run tests
    pytest --cov=app
    ```
 
 6. **Commit your changes**
+
    ```bash
    git add .
    git commit -m "feat: add amazing feature"
    ```
-   
+
    Follow [Conventional Commits](https://www.conventionalcommits.org/):
    - `feat:` New feature
    - `fix:` Bug fix
@@ -750,6 +779,7 @@ We welcome contributions! Please follow these steps:
    - `chore:` Maintenance
 
 7. **Push to your fork**
+
    ```bash
    git push origin feature/amazing-feature
    ```
@@ -759,15 +789,14 @@ We welcome contributions! Please follow these steps:
    - Reference any related issues
    - Ensure all checks pass
 
-
-
 ## 👨‍💻 Author
 
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
-- Email: your.email@example.com
-- Website: https://yourwebsite.com
+**Mohid Naghman**
+
+- GitHub: [@MohidNaghman1](https://github.com/MohidNaghman1)
+- LinkedIn: [Mohid Naghman](https://www.linkedin.com/in/mohid-naghman/)
+- Email: mohidnaghman0@gmail.com
+- Website: [ai-content-platform-k4b9.onrender.com](https://ai-content-platform-k4b9.onrender.com)
 
 ## 🙏 Acknowledgments
 

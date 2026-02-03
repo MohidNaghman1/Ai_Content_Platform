@@ -25,7 +25,11 @@ app.include_router(admin_router)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the AI Content Platform API"}
+    return {
+        "message": "Welcome to the AI Content Platform API!",
+        "docs_url": "/docs",
+        "description": "Visit /docs for interactive API documentation, or /health for a quick health check. This platform provides AI-powered content, chat, notifications, and admin features."
+    }
 
 
 @app.get("/health")
