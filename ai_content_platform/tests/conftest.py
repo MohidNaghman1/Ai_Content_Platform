@@ -18,9 +18,16 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 BASE_DIR = Path(__file__).resolve().parents[1]  # ai_content_platform/
 ALEMBIC_INI = BASE_DIR / "alembic.ini"
 
+
 @pytest.fixture(scope="session", autouse=True)
 def apply_migrations():
     alembic_cfg = Config(str(ALEMBIC_INI))
+
+    alembic_cfg.set_main_option(
+        "sqlalchemy.url",
+        "sqlite:///./test.db"
+    )
+
     command.upgrade(alembic_cfg, "head")
 
 
