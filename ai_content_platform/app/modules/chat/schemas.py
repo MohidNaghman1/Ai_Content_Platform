@@ -46,7 +46,6 @@ class TokenUsageOut(BaseModel):
 # Manual ORM → DTO conversion to avoid lazy loading and async bugs
 
 
-
 def conversation_to_out(conv: Conversation) -> "ConversationOut":
     # Check if messages was actually loaded; don't guess
     state = instance_state(conv)
