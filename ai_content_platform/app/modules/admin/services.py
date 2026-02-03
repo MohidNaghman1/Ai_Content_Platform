@@ -44,7 +44,8 @@ async def get_all_users():
     logger.info("Fetching all users from database")
     try:
         async for db in get_db():
-            result = await db.execute(select(User))
+            # Eager-load roles if UserOut expects them
+            result = await db.execute(select(User).options(selectinload(User.roles)))
             users = result.scalars().all()
             logger.info(f"Fetched {len(users)} users")
             return [UserOut.model_validate(u) for u in users]
@@ -120,6 +121,7 @@ async def get_all_articles():
     logger.info("Fetching all articles from database")
     try:
         async for db in get_db():
+            # Eager-load tags if ArticleOut expects them
             stmt = select(Article).options(selectinload(Article.tags))
             result = await db.execute(stmt)
             articles = result.scalars().all()
@@ -187,7 +189,8 @@ async def get_flagged_content():
     logger.info("Fetching flagged content")
     try:
         async for db in get_db():
-            result = await db.execute(select(Article).where(Article.flagged))
+            # Eager-load tags for flagged articles if needed
+            result = await db.execute(select(Article).options(selectinload(Article.tags)).where(Article.flagged))
             flagged = result.scalars().all()
             logger.info(f"Fetched {len(flagged)} flagged articles")
             return [ArticleOut.model_validate(a) for a in flagged]
@@ -201,7 +204,9 @@ async def moderate_article_service(article_id: int, action: str):
     logger.info(f"Moderating article: {article_id} with action: {action}")
     try:
         async for db in get_db():
-            article = await db.get(Article, article_id)
+            # Eager-load tags for moderation if needed
+            result = await db.execute(select(Article).options(selectinload(Article.tags)).where(Article.id == article_id))
+            article = result.scalar_one_or_none()
             if not article:
                 logger.error(f"Article not found: {article_id}")
                 raise HTTPException(status_code=404, detail="Article not found")
