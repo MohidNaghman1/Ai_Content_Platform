@@ -37,7 +37,9 @@ async def start_conversation(
     logger.info(f"Start conversation endpoint called for user: {user.username}")
     try:
         obj = await services.start_conversation(db, user_id=user.id, title=conv.title)
-        logger.info(f"Conversation started for user: {user.username}, conversation_id: {obj.id}")
+        logger.info(
+            f"Conversation started for user: {user.username}, conversation_id: {obj.id}"
+        )
         return obj
     except Exception as e:
         logger.error(f"Error in start_conversation: {e}", exc_info=True)
