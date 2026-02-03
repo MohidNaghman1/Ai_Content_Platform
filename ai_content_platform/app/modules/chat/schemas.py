@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict
+from ai_content_platform.app.modules.chat.models import Conversation, Message
+
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -15,7 +17,6 @@ class MessageCreate(MessageBase):
 class MessageOut(MessageBase):
     id: int
     created_at: datetime
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -30,7 +31,8 @@ class ConversationCreate(ConversationBase):
 class ConversationOut(ConversationBase):
     id: int
     created_at: datetime
-    messages: List[MessageOut] = []
+    messages: List[MessageOut] = Field(default_factory=list)
+
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -40,3 +42,20 @@ class TokenUsageOut(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+# Manual ORM → DTO conversion to avoid lazy loading and async bugs
+def conversation_to_out(conv: Conversation) -> "ConversationOut":
+    return ConversationOut(
+        id=conv.id,
+        title=conv.title,
+        created_at=conv.created_at,
+        messages=[
+            MessageOut(
+                id=m.id,
+                sender=m.sender,
+                content=m.content,
+                created_at=m.created_at,
+            )
+            for m in getattr(conv, "messages", [])
+        ],
+    )

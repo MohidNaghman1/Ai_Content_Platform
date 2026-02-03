@@ -67,6 +67,8 @@ async def get_conversation(
             .where(Conversation.id == conversation_id)
         )
         conversation = result.scalar_one_or_none()
+        # Force load messages to avoid lazy loading
+        _ = getattr(conversation, "messages", None)
         return conversation
     except Exception as e:
         logger.error(
@@ -79,9 +81,15 @@ async def get_user_conversations(db: AsyncSession, user_id: int) -> List[Convers
     logger.info(f"Fetching conversations for user {user_id}")
     try:
         result = await db.execute(
-            select(Conversation).where(Conversation.user_id == user_id)
+            select(Conversation)
+            .options(selectinload(Conversation.messages))
+            .where(Conversation.user_id == user_id)
         )
-        return result.scalars().all()
+        conversations = result.scalars().all()
+        # Force load messages for each conversation
+        for conv in conversations:
+            _ = getattr(conv, "messages", None)
+        return conversations
     except Exception as e:
         logger.error(
             f"Error fetching conversations for user {user_id}: {e}", exc_info=True

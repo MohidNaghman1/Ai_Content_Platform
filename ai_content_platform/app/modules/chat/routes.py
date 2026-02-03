@@ -1,6 +1,7 @@
 from starlette.background import BackgroundTasks
 from fastapi.responses import StreamingResponse
 from ai_content_platform.app.modules.chat import services
+from ai_content_platform.app.modules.chat.schemas import conversation_to_out
 from ai_content_platform.app.modules.chat.schemas import (
     ConversationCreate,
     ConversationOut,
@@ -40,7 +41,7 @@ async def start_conversation(
         logger.info(
             f"Conversation started for user: {user.username}, conversation_id: {obj.id}"
         )
-        return ConversationOut.model_validate(obj)
+        return conversation_to_out(obj)
     except Exception as e:
         logger.error(f"Error in start_conversation: {e}", exc_info=True)
         raise
@@ -57,7 +58,7 @@ async def list_conversations(
     logger.info(f"List conversations endpoint called for user: {user.username}")
     try:
         conversations = await services.get_user_conversations(db, user_id=user.id)
-        return [ConversationOut.model_validate(conv) for conv in conversations]
+        return [conversation_to_out(conv) for conv in conversations]
     except Exception as e:
         logger.error(f"Error in list_conversations: {e}", exc_info=True)
         raise
@@ -83,7 +84,7 @@ async def get_conversation(
                 f"Conversation not found: {conversation_id} for user: {user.id}"
             )
             raise HTTPException(404, "Conversation not found")
-        return ConversationOut.model_validate(conv)
+        return conversation_to_out(conv)
     except Exception as e:
         logger.error(f"Error in get_conversation: {e}", exc_info=True)
         raise
