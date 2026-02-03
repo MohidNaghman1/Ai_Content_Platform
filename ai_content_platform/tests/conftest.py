@@ -25,13 +25,7 @@ def apply_migrations():
         db_path.unlink()
 
     alembic_cfg = Config(str(ALEMBIC_INI))
-<<<<<<< HEAD
     alembic_cfg.set_main_option("sqlalchemy.url", "sqlite:///./test.db")
-=======
-
-    alembic_cfg.set_main_option("sqlalchemy.url", "sqlite:///./test.db")
-
->>>>>>> fe5cd915d65cf42e43e810f9999a43191d9fad44
     command.upgrade(alembic_cfg, "head")
 
 
@@ -51,6 +45,7 @@ AsyncTestingSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 async def override_get_db():
     async with AsyncTestingSessionLocal() as session:
         yield session
+
 
 app.dependency_overrides[get_db] = override_get_db
 
