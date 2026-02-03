@@ -1,18 +1,19 @@
+import os
+from pathlib import Path
+import pytest
+from alembic.config import Config
+from alembic import command
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.pool import StaticPool
+from ai_content_platform.app.main import app
+from ai_content_platform.app.shared.dependencies import get_db
+import httpx
+from ai_content_platform.app.main import app as fastapi_app
 import logging
+
 logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-from ai_content_platform.app.main import app as fastapi_app
-import httpx
-from ai_content_platform.app.shared.dependencies import get_db
-from ai_content_platform.app.main import app
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-import pytest_asyncio
-from alembic import command
-from alembic.config import Config
-import pytest
-from pathlib import Path
-import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 
