@@ -2,12 +2,10 @@
 SQLAlchemy User model.
 Defines the users table for authentication and profile management.
 """
-
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from ai_content_platform.app.modules.auth.models import user_roles
 from ai_content_platform.app.database import Base
-
 from sqlalchemy import Boolean
 
 

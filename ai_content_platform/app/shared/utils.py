@@ -23,7 +23,6 @@ load_dotenv(
 
 # Redis connection utility
 
-
 def get_redis_connection():
     try:
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")

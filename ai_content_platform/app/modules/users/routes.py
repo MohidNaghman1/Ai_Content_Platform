@@ -31,8 +31,6 @@ logger = get_logger(__name__)
 user_router = APIRouter(prefix="/users", tags=["users"])
 
 # Example: List all users (requires 'view_users' permission)
-
-
 @user_router.get(
     "/",
     response_model=list[UserOut],
@@ -50,8 +48,6 @@ async def list_users_endpoint(db: AsyncSession = Depends(get_db)):
 
 
 # Get current user's profile
-
-
 @user_router.get("/me", response_model=UserOut)
 async def get_profile(
     current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
@@ -90,8 +86,6 @@ async def get_my_roles_permissions(current_user=Depends(get_current_user)):
 
 
 # Update current user's profile
-
-
 @user_router.put("/me", response_model=UserOut)
 async def update_profile(
     update: UserUpdate,
@@ -141,8 +135,6 @@ async def create_user_endpoint(user_in: UserCreate, db: AsyncSession = Depends(g
 
 
 # Upload avatar (simple string path, for demo)
-
-
 @user_router.post("/me/avatar", response_model=UserOut)
 async def upload_avatar(
     avatar: str,

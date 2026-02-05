@@ -2,7 +2,6 @@
 Authentication API router: registration, login, refresh, logout endpoints.
 Handles user registration, JWT login, token refresh, and logout.
 """
-
 from ai_content_platform.app.modules.users.models import User
 from ai_content_platform.app.modules.users.services import (
     get_user_by_username,
@@ -16,7 +15,6 @@ from ai_content_platform.app.modules.auth.services import (
     revoke_refresh_token,
 )
 from ai_content_platform.app.modules.users.schemas import UserCreate, UserOut
-from ai_content_platform.app.modules.auth.models import RefreshToken
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
@@ -95,7 +93,6 @@ async def refresh_token(request: Request, db: AsyncSession = Depends(get_db)):
         if not refresh_token:
             logger.error("Missing refresh token in request body")
             raise HTTPException(400, "Missing refresh token")
-        from ai_content_platform.app.modules.users.models import User
 
         new_access_token, new_refresh_token, user = await rotate_refresh_token(
             refresh_token, db, User
