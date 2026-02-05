@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     DB_PORT: int = int(os.getenv("DB_PORT", 5432))
     DB_NAME: str = os.getenv("DB_NAME", "ai_content_platform")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your_secret_key")
-    Gemini_API_KEY: str = os.getenv("GEMINI_API_KEY", "your-gemini-api-key")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "your-gemini-api-key")
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
