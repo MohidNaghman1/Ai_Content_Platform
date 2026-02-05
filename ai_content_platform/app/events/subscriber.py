@@ -36,7 +36,7 @@ def create_subscriber(stream_name: str, consumer_group: str = None):
     PENDING_CHECK_INTERVAL = 30
 
     while True:
-        # Handle pending messages 
+        # Handle pending messages
         now = time.time()
         if now - last_pending_check > PENDING_CHECK_INTERVAL:
             handle_pending_messages(
