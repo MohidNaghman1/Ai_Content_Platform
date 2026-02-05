@@ -1,12 +1,11 @@
 from starlette.background import BackgroundTasks
 from fastapi.responses import StreamingResponse
 from ai_content_platform.app.modules.chat import services
-from ai_content_platform.app.modules.chat.schemas import conversation_to_out
 from ai_content_platform.app.modules.chat.schemas import (
     ConversationCreate,
     ConversationOut,
     MessageCreate,
-    MessageOut,
+    conversation_to_out,
     TokenUsageOut,
 )
 from ai_content_platform.app.shared.dependencies import (
@@ -203,6 +202,11 @@ async def stream_message(
         raise
 
 
+@chat_router.get(
+    "/conversations/{conversation_id}/messages/",
+    response_model=List[MessageCreate],
+    dependencies=[Depends(require_permission("view_chat"))],
+)
 async def get_messages(
     conversation_id: int,
     db: AsyncSession = Depends(get_db),
