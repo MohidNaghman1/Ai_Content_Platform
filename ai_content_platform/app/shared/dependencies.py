@@ -95,6 +95,7 @@ async def get_user_permissions(current_user: User = Depends(get_current_user)):
 
 # RBAC: Require a specific permission
 
+
 def require_permission(permission: str):
     def _log_permission_check(user, has_permission):
         username = getattr(user, "username", None)

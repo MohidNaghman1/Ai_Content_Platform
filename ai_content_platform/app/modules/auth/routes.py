@@ -2,6 +2,7 @@
 Authentication API router: registration, login, refresh, logout endpoints.
 Handles user registration, JWT login, token refresh, and logout.
 """
+
 from ai_content_platform.app.modules.users.models import User
 from ai_content_platform.app.modules.users.services import (
     get_user_by_username,

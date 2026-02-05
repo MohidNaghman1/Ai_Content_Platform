@@ -31,6 +31,8 @@ logger = get_logger(__name__)
 user_router = APIRouter(prefix="/users", tags=["users"])
 
 # Example: List all users (requires 'view_users' permission)
+
+
 @user_router.get(
     "/",
     response_model=list[UserOut],
