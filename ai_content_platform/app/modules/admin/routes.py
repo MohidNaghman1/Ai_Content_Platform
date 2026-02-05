@@ -23,32 +23,26 @@ from ai_content_platform.app.modules.admin.services import (
 )
 
 # Content moderation endpoints
-from ai_content_platform.app.modules.content.models import Article
+
 from ai_content_platform.app.modules.content.schemas import (
     ArticleOut,
     ArticleCreate,
     ArticleUpdate,
 )
-from ai_content_platform.app.modules.content.gemini_service import GeminiService
+
 
 admin_router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-@admin_router.get("/analytics", dependencies=[Depends(require_role("admin"))])
-async def get_analytics():
-    return get_analytics_stats()
 
-
-# List flagged articles (admin only)
-
-
+# List flagged articles 
 @admin_router.get(
     "/moderation/flagged",
     response_model=list[ArticleOut],
     dependencies=[Depends(require_role("admin"))],
 )
 async def list_flagged_articles():
-    return get_flagged_content()
+    return await get_flagged_content()
 
 
 # User management endpoints
@@ -91,7 +85,6 @@ async def admin_delete_user(user_id: int):
 
 # Article management endpoints
 
-
 @admin_router.get(
     "/articles",
     response_model=list[ArticleOut],
@@ -131,7 +124,6 @@ async def admin_delete_article(article_id: int):
 
 # List flagged articles (admin only)
 
-
 @admin_router.get(
     "/moderation/flagged",
     response_model=list[ArticleOut],
@@ -142,7 +134,6 @@ async def list_flagged_articles():
 
 
 # Moderate article (approve/reject) with AI suggestion
-
 
 @admin_router.post(
     "/moderation/{article_id}/review",
@@ -155,7 +146,6 @@ async def moderate_article(article_id: int, action: str):
 
 # Analytics endpoint
 
-
 @admin_router.get("/analytics", dependencies=[Depends(require_role("admin"))])
 async def get_analytics():
     return await get_analytics_stats()
@@ -163,15 +153,7 @@ async def get_analytics():
 
 # System health monitoring endpoint
 
-
 @admin_router.get("/health", dependencies=[Depends(require_role("admin"))])
 async def system_health():
     return await get_system_health()
 
-
-# System health monitoring endpoint
-
-
-@admin_router.get("/health", dependencies=[Depends(require_role("admin"))])
-async def system_health():
-    return await get_system_health()

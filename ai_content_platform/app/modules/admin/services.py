@@ -183,8 +183,6 @@ async def delete_article_service(article_id: int):
 
 
 # Moderation
-
-
 async def get_flagged_content():
     logger.info("Fetching flagged content")
     try:
@@ -245,7 +243,6 @@ async def moderate_article_service(article_id: int, action: str):
 
 
 # Analytics
-
 
 async def get_analytics_stats():
     logger.info("Fetching analytics stats")

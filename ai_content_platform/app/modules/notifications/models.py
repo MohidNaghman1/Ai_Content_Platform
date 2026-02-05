@@ -1,6 +1,5 @@
 # Notification models
 from datetime import datetime
-from typing import Optional
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from ai_content_platform.app.database import Base
 

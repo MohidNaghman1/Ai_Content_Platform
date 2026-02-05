@@ -1,4 +1,3 @@
-# app/modules/notifications/services.py
 from ai_content_platform.app.modules.notifications.models import (
     Notification,
     InAppNotificationStore,
@@ -6,7 +5,6 @@ from ai_content_platform.app.modules.notifications.models import (
 from ai_content_platform.app.modules.users.models import User
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict
-from datetime import datetime
 from ai_content_platform.app.shared.logging import get_logger
 
 logger = get_logger(__name__)
